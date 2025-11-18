@@ -16,6 +16,8 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddScoped<IEmailRepository, EmailRepository>();
 builder.Services.AddScoped<IEmailTemplateRepository, EmailTemplateRepository>();
 builder.Services.AddScoped<ICampaignRepository, CampaignRepository>();
+builder.Services.AddScoped<ITrackingRepository, TrackingRepository>();
+builder.Services.AddScoped<ITenantRepository, TenantRepository>();
 
 // Register email providers
 builder.Services.AddScoped<SmtpEmailProvider>();
@@ -25,6 +27,7 @@ builder.Services.AddScoped<SendGridEmailProvider>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
+builder.Services.AddScoped<ITrackingService, TrackingService>();
 
 // Add CORS
 builder.Services.AddCors(options =>
