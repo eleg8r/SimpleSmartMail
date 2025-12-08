@@ -160,6 +160,86 @@ public class TrackingService : ITrackingService
         return Task.FromResult(_trackedUrls.TryGetValue(key, out var url) ? url : null);
     }
 
+    public Task<string> InjectUnsubscribeLinkAsync(string htmlBody, Guid trackingId, string baseUrl)
+    {
+        var unsubscribeUrl = $"{baseUrl}/track/unsubscribe/{trackingId}";
+        var unsubscribeLink = $"<p style=\"text-align: center; font-size: 12px; color: #666; margin-top: 20px;\">" +
+                             $"<a href=\"{unsubscribeUrl}\" style=\"color: #666; text-decoration: underline;\">Unsubscribe from this campaign</a>" +
+                             $"</p>";
+
+        // Insert before closing body tag or append at end
+        if (htmlBody.Contains("</body>", StringComparison.OrdinalIgnoreCase))
+        {
+            htmlBody = Regex.Replace(htmlBody, "</body>", $"{unsubscribeLink}</body>", RegexOptions.IgnoreCase);
+        }
+        else
+        {
+            htmlBody += unsubscribeLink;
+        }
+
+        return Task.FromResult(htmlBody);
+    }
+
+    public async Task HandleBounceAsync(int emailId, string bounceReason)
+    {
+        var email = await _emailRepository.GetByIdAsync(emailId);
+        if (email == null) return;
+
+        // Mark email as bounced
+        email.Status = EmailStatus.Failed;
+        email.ErrorMessage = $"Bounced: {bounceReason}";
+        await _emailRepository.UpdateAsync(email);
+
+        // Auto-unsubscribe for hard bounces
+        if (IsHardBounce(bounceReason))
+        {
+            var unsubscribeRequest = new UnsubscribeRequest
+            {
+                TenantId = email.TenantId,
+                EmailAddress = email.ToAddress,
+                TrackingId = email.TrackingId,
+                Reason = $"Auto-unsubscribed: Hard bounce - {bounceReason}",
+                GlobalUnsubscribe = true, // Prevent all future emails
+                UnsubscribedAt = DateTime.UtcNow
+            };
+
+            await _trackingRepository.AddUnsubscribeRequestAsync(unsubscribeRequest);
+            _logger.LogWarning("Auto-unsubscribed {EmailAddress} due to hard bounce", email.ToAddress);
+        }
+    }
+
+    public async Task HandleSpamComplaintAsync(int emailId)
+    {
+        var email = await _emailRepository.GetByIdAsync(emailId);
+        if (email == null) return;
+
+        // Auto-unsubscribe for spam complaints (always global)
+        var unsubscribeRequest = new UnsubscribeRequest
+        {
+            TenantId = email.TenantId,
+            EmailAddress = email.ToAddress,
+            TrackingId = email.TrackingId,
+            Reason = "Auto-unsubscribed: Spam complaint",
+            GlobalUnsubscribe = true,
+            UnsubscribedAt = DateTime.UtcNow
+        };
+
+        await _trackingRepository.AddUnsubscribeRequestAsync(unsubscribeRequest);
+        _logger.LogWarning("Spam complaint received for email {EmailId} to {EmailAddress}", emailId, email.ToAddress);
+    }
+
+    private bool IsHardBounce(string bounceReason)
+    {
+        var hardBounceIndicators = new[]
+        {
+            "invalid", "not exist", "unknown user", "mailbox not found",
+            "no such user", "user unknown", "permanent failure", "address rejected"
+        };
+
+        return hardBounceIndicators.Any(indicator =>
+            bounceReason.Contains(indicator, StringComparison.OrdinalIgnoreCase));
+    }
+
     public async Task<int> AddUnsubscribeRequestAsync(UnsubscribeRequest request)
     {
         request.UnsubscribedAt = DateTime.UtcNow;

@@ -15,6 +15,8 @@ public class SendEmailRequest
     public List<AttachmentDto>? Attachments { get; set; }
     public bool SendImmediately { get; set; } = true;
     public DateTime? ScheduledAt { get; set; }
+    public bool EnableOpenTracking { get; set; } = true;
+    public bool EnableClickTracking { get; set; } = true;
 }
 
 public class AttachmentDto

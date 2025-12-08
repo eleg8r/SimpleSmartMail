@@ -160,4 +160,45 @@ public class TrackingController : ControllerBase
             return StatusCode(500, new { Message = "Internal server error" });
         }
     }
+
+    /// <summary>
+    /// Handle bounce notification from email provider
+    /// </summary>
+    [HttpPost("bounce/{emailId}")]
+    public async Task<IActionResult> HandleBounce(int emailId, [FromBody] BounceNotificationRequest request)
+    {
+        try
+        {
+            await _trackingService.HandleBounceAsync(emailId, request.BounceReason ?? "Unknown bounce reason");
+            return Ok(new { Message = "Bounce handled successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling bounce for email {EmailId}", emailId);
+            return StatusCode(500, new { Message = "Internal server error" });
+        }
+    }
+
+    /// <summary>
+    /// Handle spam complaint notification from email provider
+    /// </summary>
+    [HttpPost("spam/{emailId}")]
+    public async Task<IActionResult> HandleSpamComplaint(int emailId)
+    {
+        try
+        {
+            await _trackingService.HandleSpamComplaintAsync(emailId);
+            return Ok(new { Message = "Spam complaint handled successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling spam complaint for email {EmailId}", emailId);
+            return StatusCode(500, new { Message = "Internal server error" });
+        }
+    }
+}
+
+public class BounceNotificationRequest
+{
+    public string? BounceReason { get; set; }
 }

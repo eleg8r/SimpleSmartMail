@@ -11,18 +11,21 @@ namespace SimpleSmartMail.Business.Services;
 public class EmailService : IEmailService
 {
     private readonly IEmailRepository _emailRepository;
+    private readonly ITrackingService _trackingService;
     private readonly IConfiguration _configuration;
     private readonly ILogger<EmailService> _logger;
     private readonly Dictionary<EmailProviderType, IEmailProvider> _emailProviders;
 
     public EmailService(
         IEmailRepository emailRepository,
+        ITrackingService trackingService,
         IConfiguration configuration,
         ILogger<EmailService> logger,
         SmtpEmailProvider smtpProvider,
         SendGridEmailProvider sendGridProvider)
     {
         _emailRepository = emailRepository;
+        _trackingService = trackingService;
         _configuration = configuration;
         _logger = logger;
 
@@ -37,6 +40,18 @@ public class EmailService : IEmailService
     {
         try
         {
+            // Check if recipient is unsubscribed
+            var isUnsubscribed = await _trackingService.IsUnsubscribedAsync(request.ToAddress, request.TenantId);
+            if (isUnsubscribed)
+            {
+                _logger.LogWarning("Email to {EmailAddress} blocked - recipient unsubscribed", request.ToAddress);
+                return new SendEmailResponse
+                {
+                    Success = false,
+                    ErrorMessage = "Recipient has unsubscribed"
+                };
+            }
+
             // Create email entity
             var email = new Email
             {
@@ -70,6 +85,40 @@ public class EmailService : IEmailService
                         Content = attachmentDto.Content,
                         SizeInBytes = attachmentDto.Content.Length
                     });
+                }
+            }
+
+            // Integrate tracking features
+            if (!string.IsNullOrEmpty(email.HtmlBody))
+            {
+                var baseUrl = _configuration["TrackingSettings:BaseUrl"] ?? "https://localhost:5001";
+                var enableTracking = _configuration.GetValue<bool>("TrackingSettings:EnableTracking", true);
+
+                if (enableTracking)
+                {
+                    // Inject open tracking pixel
+                    if (request.EnableOpenTracking)
+                    {
+                        email.HtmlBody = await _trackingService.InjectTrackingPixelAsync(
+                            email.HtmlBody,
+                            email.TrackingId,
+                            baseUrl);
+                    }
+
+                    // Replace links with tracked URLs
+                    if (request.EnableClickTracking)
+                    {
+                        email.HtmlBody = await _trackingService.ReplaceLinksWithTrackedUrlsAsync(
+                            email.HtmlBody,
+                            email.TrackingId,
+                            baseUrl);
+                    }
+
+                    // Inject unsubscribe link
+                    email.HtmlBody = await _trackingService.InjectUnsubscribeLinkAsync(
+                        email.HtmlBody,
+                        email.TrackingId,
+                        baseUrl);
                 }
             }
 

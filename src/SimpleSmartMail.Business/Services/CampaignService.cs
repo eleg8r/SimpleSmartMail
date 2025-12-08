@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SimpleSmartMail.Data.Repositories;
 using SimpleSmartMail.Models.DTOs;
@@ -11,15 +12,21 @@ public class CampaignService : ICampaignService
 {
     private readonly ICampaignRepository _campaignRepository;
     private readonly IEmailService _emailService;
+    private readonly ITrackingService _trackingService;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<CampaignService> _logger;
 
     public CampaignService(
         ICampaignRepository campaignRepository,
         IEmailService emailService,
+        ITrackingService trackingService,
+        IConfiguration configuration,
         ILogger<CampaignService> logger)
     {
         _campaignRepository = campaignRepository;
         _emailService = emailService;
+        _trackingService = trackingService;
+        _configuration = configuration;
         _logger = logger;
     }
 
@@ -142,6 +149,19 @@ public class CampaignService : ICampaignService
             {
                 try
                 {
+                    // Check if recipient is unsubscribed
+                    var isUnsubscribed = await _trackingService.IsUnsubscribedAsync(recipient.EmailAddress, campaign.TenantId);
+                    if (isUnsubscribed)
+                    {
+                        _logger.LogInformation("Skipping unsubscribed recipient {EmailAddress} for campaign {CampaignId}",
+                            recipient.EmailAddress, campaign.Id);
+
+                        recipient.Sent = false;
+                        await _campaignRepository.UpdateRecipientAsync(recipient);
+                        emailsFailed++;
+                        continue;
+                    }
+
                     // Apply personalization (simplified - just replace placeholders)
                     var htmlBody = campaign.HtmlTemplate;
                     var subject = campaign.Subject;
@@ -169,7 +189,9 @@ public class CampaignService : ICampaignService
                         Subject = subject,
                         HtmlBody = htmlBody,
                         TextBody = campaign.TextTemplate,
-                        SendImmediately = true
+                        SendImmediately = true,
+                        EnableOpenTracking = campaign.EnableOpenTracking,
+                        EnableClickTracking = campaign.EnableClickTracking
                     };
 
                     var result = await _emailService.SendEmailAsync(emailRequest);
