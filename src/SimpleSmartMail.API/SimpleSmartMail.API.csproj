@@ -4,6 +4,9 @@
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>SimpleSmartMail.API</RootNamespace>
+    <AssemblyName>SimpleSmartMail.API</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

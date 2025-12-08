@@ -4,6 +4,8 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>SimpleSmartMail.Models</RootNamespace>
+    <AssemblyName>SimpleSmartMail.Models</AssemblyName>
   </PropertyGroup>
 
 </Project>
