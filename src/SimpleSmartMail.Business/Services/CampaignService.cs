@@ -13,6 +13,7 @@ public class CampaignService : ICampaignService
     private readonly ICampaignRepository _campaignRepository;
     private readonly IEmailService _emailService;
     private readonly ITrackingService _trackingService;
+    private readonly IAutoAuthTokenService _autoAuthTokenService;
     private readonly IConfiguration _configuration;
     private readonly ILogger<CampaignService> _logger;
 
@@ -20,12 +21,14 @@ public class CampaignService : ICampaignService
         ICampaignRepository campaignRepository,
         IEmailService emailService,
         ITrackingService trackingService,
+        IAutoAuthTokenService autoAuthTokenService,
         IConfiguration configuration,
         ILogger<CampaignService> logger)
     {
         _campaignRepository = campaignRepository;
         _emailService = emailService;
         _trackingService = trackingService;
+        _autoAuthTokenService = autoAuthTokenService;
         _configuration = configuration;
         _logger = logger;
     }
@@ -54,6 +57,47 @@ public class CampaignService : ICampaignService
         };
 
         var campaignId = await _campaignRepository.CreateAsync(campaign);
+
+        // Auto-generate authentication tokens if enabled
+        if (request.AutoGenerateAuthTokens && !string.IsNullOrEmpty(request.AutoAuthBaseUrl))
+        {
+            var tokenKey = request.AutoAuthTokenKey ?? "TutorConnectUrl";
+
+            foreach (var recipientDto in request.Recipients)
+            {
+                // Only generate token if recipient has a UserId
+                if (!string.IsNullOrEmpty(recipientDto.UserId))
+                {
+                    try
+                    {
+                        // Initialize PersonalizationData if null
+                        recipientDto.PersonalizationData ??= new Dictionary<string, string>();
+
+                        // Generate auto-login URL with JWT token
+                        var autoAuthUrl = _autoAuthTokenService.GenerateTutorConnectUrl(
+                            userId: recipientDto.UserId,
+                            email: recipientDto.EmailAddress,
+                            baseUrl: request.AutoAuthBaseUrl
+                        );
+
+                        // Add to personalization data
+                        recipientDto.PersonalizationData[tokenKey] = autoAuthUrl;
+
+                        _logger.LogInformation(
+                            "Generated auto-auth token for recipient {Email} with UserId {UserId}",
+                            recipientDto.EmailAddress,
+                            recipientDto.UserId);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex,
+                            "Failed to generate auto-auth token for recipient {Email}",
+                            recipientDto.EmailAddress);
+                        // Continue processing other recipients
+                    }
+                }
+            }
+        }
 
         // Add recipients
         foreach (var recipientDto in request.Recipients)
