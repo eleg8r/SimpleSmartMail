@@ -34,7 +34,8 @@ public class EmailRepository : BaseRepository, IEmailRepository
             new SqlParameter("@ClickTracked", email.ClickTracked),
             new SqlParameter("@ScheduledAt", (object?)email.ScheduledAt ?? DBNull.Value),
             new SqlParameter("@ProviderUsed", (object?)email.ProviderUsed ?? DBNull.Value),
-            new SqlParameter("@Metadata", (object?)email.Metadata ?? DBNull.Value)
+            new SqlParameter("@Metadata", (object?)email.Metadata ?? DBNull.Value),
+            new SqlParameter("@IsValid", email.IsValid)
         };
 
         var emailId = await ExecuteScalarAsync<int>("sp_Email_Create", parameters);
@@ -136,7 +137,8 @@ public class EmailRepository : BaseRepository, IEmailRepository
             new SqlParameter("@DeliveredAt", (object?)email.DeliveredAt ?? DBNull.Value),
             new SqlParameter("@ErrorMessage", (object?)email.ErrorMessage ?? DBNull.Value),
             new SqlParameter("@RetryCount", email.RetryCount),
-            new SqlParameter("@ProviderUsed", (object?)email.ProviderUsed ?? DBNull.Value)
+            new SqlParameter("@ProviderUsed", (object?)email.ProviderUsed ?? DBNull.Value),
+            new SqlParameter("@IsValid", email.IsValid)
         };
 
         await ExecuteNonQueryAsync("sp_Email_Update", parameters);

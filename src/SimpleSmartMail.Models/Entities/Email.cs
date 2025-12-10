@@ -29,6 +29,7 @@ public class Email
     public DateTime? DeliveredAt { get; set; }
     public string? ErrorMessage { get; set; }
     public int RetryCount { get; set; }
+    public bool IsValid { get; set; } = true;
     public string? ProviderUsed { get; set; }
     public string? Metadata { get; set; }
     public DateTime CreatedAt { get; set; }

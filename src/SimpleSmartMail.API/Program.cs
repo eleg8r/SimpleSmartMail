@@ -29,6 +29,7 @@ builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<ITrackingService, TrackingService>();
 builder.Services.AddScoped<IAutoAuthTokenService, AutoAuthTokenService>();
+builder.Services.AddScoped<IEmailValidationService, EmailValidationService>();
 
 // Add CORS
 builder.Services.AddCors(options =>

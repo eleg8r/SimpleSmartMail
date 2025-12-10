@@ -14,6 +14,7 @@ public class CampaignService : ICampaignService
     private readonly IEmailService _emailService;
     private readonly ITrackingService _trackingService;
     private readonly IAutoAuthTokenService _autoAuthTokenService;
+    private readonly IEmailValidationService _emailValidationService;
     private readonly IConfiguration _configuration;
     private readonly ILogger<CampaignService> _logger;
 
@@ -22,6 +23,7 @@ public class CampaignService : ICampaignService
         IEmailService emailService,
         ITrackingService trackingService,
         IAutoAuthTokenService autoAuthTokenService,
+        IEmailValidationService emailValidationService,
         IConfiguration configuration,
         ILogger<CampaignService> logger)
     {
@@ -29,6 +31,7 @@ public class CampaignService : ICampaignService
         _emailService = emailService;
         _trackingService = trackingService;
         _autoAuthTokenService = autoAuthTokenService;
+        _emailValidationService = emailValidationService;
         _configuration = configuration;
         _logger = logger;
     }
@@ -193,6 +196,20 @@ public class CampaignService : ICampaignService
             {
                 try
                 {
+                    // Validate recipient email address
+                    var validation = await _emailValidationService.ValidateEmailAsync(recipient.EmailAddress);
+                    if (!validation.IsValid)
+                    {
+                        _logger.LogWarning("Invalid email address for recipient {Email}: {Errors}",
+                            recipient.EmailAddress,
+                            string.Join(", ", validation.Errors));
+
+                        recipient.Sent = false;
+                        await _campaignRepository.UpdateRecipientAsync(recipient);
+                        emailsFailed++;
+                        continue;
+                    }
+
                     // Check if recipient is unsubscribed
                     var isUnsubscribed = await _trackingService.IsUnsubscribedAsync(recipient.EmailAddress, campaign.TenantId);
                     if (isUnsubscribed)

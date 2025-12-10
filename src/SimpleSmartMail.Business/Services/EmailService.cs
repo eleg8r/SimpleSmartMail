@@ -12,6 +12,7 @@ public class EmailService : IEmailService
 {
     private readonly IEmailRepository _emailRepository;
     private readonly ITrackingService _trackingService;
+    private readonly IEmailValidationService _emailValidationService;
     private readonly IConfiguration _configuration;
     private readonly ILogger<EmailService> _logger;
     private readonly Dictionary<EmailProviderType, IEmailProvider> _emailProviders;
@@ -19,6 +20,7 @@ public class EmailService : IEmailService
     public EmailService(
         IEmailRepository emailRepository,
         ITrackingService trackingService,
+        IEmailValidationService emailValidationService,
         IConfiguration configuration,
         ILogger<EmailService> logger,
         SmtpEmailProvider smtpProvider,
@@ -26,6 +28,7 @@ public class EmailService : IEmailService
     {
         _emailRepository = emailRepository;
         _trackingService = trackingService;
+        _emailValidationService = emailValidationService;
         _configuration = configuration;
         _logger = logger;
 
@@ -40,6 +43,60 @@ public class EmailService : IEmailService
     {
         try
         {
+            // Validate email addresses
+            var validationErrors = new List<string>();
+
+            // Validate To address
+            var toValidation = await _emailValidationService.ValidateEmailAsync(request.ToAddress);
+            if (!toValidation.IsValid)
+            {
+                validationErrors.Add($"To: {string.Join(", ", toValidation.Errors)}");
+            }
+
+            // Validate From address
+            var fromValidation = await _emailValidationService.ValidateEmailAsync(request.FromAddress);
+            if (!fromValidation.IsValid)
+            {
+                validationErrors.Add($"From: {string.Join(", ", fromValidation.Errors)}");
+            }
+
+            // Validate CC addresses
+            if (request.Cc != null && request.Cc.Any())
+            {
+                foreach (var cc in request.Cc)
+                {
+                    var ccValidation = await _emailValidationService.ValidateEmailAsync(cc);
+                    if (!ccValidation.IsValid)
+                    {
+                        validationErrors.Add($"CC ({cc}): {string.Join(", ", ccValidation.Errors)}");
+                    }
+                }
+            }
+
+            // Validate BCC addresses
+            if (request.Bcc != null && request.Bcc.Any())
+            {
+                foreach (var bcc in request.Bcc)
+                {
+                    var bccValidation = await _emailValidationService.ValidateEmailAsync(bcc);
+                    if (!bccValidation.IsValid)
+                    {
+                        validationErrors.Add($"BCC ({bcc}): {string.Join(", ", bccValidation.Errors)}");
+                    }
+                }
+            }
+
+            // If validation failed, return error
+            if (validationErrors.Any())
+            {
+                _logger.LogWarning("Email validation failed: {Errors}", string.Join("; ", validationErrors));
+                return new SendEmailResponse
+                {
+                    Success = false,
+                    ErrorMessage = $"Email validation failed: {string.Join("; ", validationErrors)}"
+                };
+            }
+
             // Check if recipient is unsubscribed
             var isUnsubscribed = await _trackingService.IsUnsubscribedAsync(request.ToAddress, request.TenantId);
             if (isUnsubscribed)
@@ -70,6 +127,7 @@ public class EmailService : IEmailService
                 OpenTracked = false,
                 ClickTracked = false,
                 ScheduledAt = request.ScheduledAt,
+                IsValid = true,
                 CreatedAt = DateTime.UtcNow
             };
 
