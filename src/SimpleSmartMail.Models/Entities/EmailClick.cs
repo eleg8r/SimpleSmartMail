@@ -3,7 +3,6 @@ namespace SimpleSmartMail.Models.Entities;
 public class EmailClick
 {
     public int Id { get; set; }
-    public string TenantId { get; set; } = string.Empty;
     public int EmailId { get; set; }
     public int? CampaignId { get; set; }
     public Guid TrackingId { get; set; }

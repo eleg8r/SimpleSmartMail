@@ -5,7 +5,6 @@ namespace SimpleSmartMail.Models.Entities;
 public class Email
 {
     public int Id { get; set; }
-    public string TenantId { get; set; } = string.Empty;
     public string FromAddress { get; set; } = string.Empty;
     public string FromName { get; set; } = string.Empty;
     public string ToAddress { get; set; } = string.Empty;
