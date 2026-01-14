@@ -8,12 +8,11 @@ GO
 -- =============================================
 -- sp_Campaign_Create
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sp_Campaign_Create]') AND type in (N'P'))
-    DROP PROCEDURE [dbo].[sp_Campaign_Create];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Campaign_Create]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[sp_Campaign_Create];
 GO
 
-CREATE PROCEDURE [dbo].[sp_Campaign_Create]
-    @TenantId NVARCHAR(50),
+CREATE PROCEDURE [emailCampaign].[sp_Campaign_Create]
     @Name NVARCHAR(255),
     @Description NVARCHAR(1000),
     @Status INT,
@@ -33,15 +32,15 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    INSERT INTO EmailCampaigns (
-        TenantId, Name, Description, Status,
+    INSERT INTO [emailCampaign].[EmailCampaigns] (
+        Name, Description, Status,
         FromAddress, FromName, Subject, HtmlTemplate, TextTemplate,
         ScheduledStartDate, BatchSize, MaxEmailsPerHour,
         EnableOpenTracking, EnableClickTracking, TotalRecipients,
         CreatedAt, CreatedBy
     )
     VALUES (
-        @TenantId, @Name, @Description, @Status,
+        @Name, @Description, @Status,
         @FromAddress, @FromName, @Subject, @HtmlTemplate, @TextTemplate,
         @ScheduledStartDate, @BatchSize, @MaxEmailsPerHour,
         @EnableOpenTracking, @EnableClickTracking, @TotalRecipients,
@@ -55,18 +54,18 @@ GO
 -- =============================================
 -- sp_Campaign_GetById
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sp_Campaign_GetById]') AND type in (N'P'))
-    DROP PROCEDURE [dbo].[sp_Campaign_GetById];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Campaign_GetById]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[sp_Campaign_GetById];
 GO
 
-CREATE PROCEDURE [dbo].[sp_Campaign_GetById]
+CREATE PROCEDURE [emailCampaign].[sp_Campaign_GetById]
     @CampaignId INT
 AS
 BEGIN
     SET NOCOUNT ON;
 
     SELECT
-        Id, TenantId, Name, Description, Status,
+        Id, Name, Description, Status,
         FromAddress, FromName, Subject, HtmlTemplate, TextTemplate,
         ScheduledStartDate, BatchSize, MaxEmailsPerHour,
         EnableOpenTracking, EnableClickTracking,
@@ -74,26 +73,30 @@ BEGIN
         EmailsOpened, EmailsClicked, EmailsFailed,
         StartedAt, CompletedAt,
         CreatedAt, UpdatedAt, CreatedBy, UpdatedBy
-    FROM EmailCampaigns
+    FROM [emailCampaign].[EmailCampaigns]
     WHERE Id = @CampaignId;
 END
 GO
 
 -- =============================================
--- sp_Campaign_GetByTenantId
+-- sp_Campaign_GetAll
+-- Get all campaigns with pagination
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sp_Campaign_GetByTenantId]') AND type in (N'P'))
-    DROP PROCEDURE [dbo].[sp_Campaign_GetByTenantId];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Campaign_GetAll]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[sp_Campaign_GetAll];
 GO
 
-CREATE PROCEDURE [dbo].[sp_Campaign_GetByTenantId]
-    @TenantId NVARCHAR(50)
+CREATE PROCEDURE [emailCampaign].[sp_Campaign_GetAll]
+    @PageNumber INT = 1,
+    @PageSize INT = 50
 AS
 BEGIN
     SET NOCOUNT ON;
 
+    DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
+
     SELECT
-        Id, TenantId, Name, Description, Status,
+        Id, Name, Description, Status,
         FromAddress, FromName, Subject, HtmlTemplate, TextTemplate,
         ScheduledStartDate, BatchSize, MaxEmailsPerHour,
         EnableOpenTracking, EnableClickTracking,
@@ -101,20 +104,21 @@ BEGIN
         EmailsOpened, EmailsClicked, EmailsFailed,
         StartedAt, CompletedAt,
         CreatedAt, UpdatedAt, CreatedBy, UpdatedBy
-    FROM EmailCampaigns
-    WHERE TenantId = @TenantId
-    ORDER BY CreatedAt DESC;
+    FROM [emailCampaign].[EmailCampaigns]
+    ORDER BY CreatedAt DESC
+    OFFSET @Offset ROWS
+    FETCH NEXT @PageSize ROWS ONLY;
 END
 GO
 
 -- =============================================
 -- sp_Campaign_Update
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sp_Campaign_Update]') AND type in (N'P'))
-    DROP PROCEDURE [dbo].[sp_Campaign_Update];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Campaign_Update]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[sp_Campaign_Update];
 GO
 
-CREATE PROCEDURE [dbo].[sp_Campaign_Update]
+CREATE PROCEDURE [emailCampaign].[sp_Campaign_Update]
     @CampaignId INT,
     @Name NVARCHAR(255),
     @Description NVARCHAR(1000),
@@ -127,7 +131,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    UPDATE EmailCampaigns
+    UPDATE [emailCampaign].[EmailCampaigns]
     SET
         Name = @Name,
         Description = @Description,
@@ -144,11 +148,11 @@ GO
 -- =============================================
 -- sp_Campaign_UpdateStatistics
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sp_Campaign_UpdateStatistics]') AND type in (N'P'))
-    DROP PROCEDURE [dbo].[sp_Campaign_UpdateStatistics];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Campaign_UpdateStatistics]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[sp_Campaign_UpdateStatistics];
 GO
 
-CREATE PROCEDURE [dbo].[sp_Campaign_UpdateStatistics]
+CREATE PROCEDURE [emailCampaign].[sp_Campaign_UpdateStatistics]
     @CampaignId INT,
     @EmailsSent INT,
     @EmailsDelivered INT,
@@ -159,7 +163,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    UPDATE EmailCampaigns
+    UPDATE [emailCampaign].[EmailCampaigns]
     SET
         EmailsSent = EmailsSent + @EmailsSent,
         EmailsDelivered = EmailsDelivered + @EmailsDelivered,
@@ -174,11 +178,11 @@ GO
 -- =============================================
 -- sp_CampaignRecipient_Create
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sp_CampaignRecipient_Create]') AND type in (N'P'))
-    DROP PROCEDURE [dbo].[sp_CampaignRecipient_Create];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_CampaignRecipient_Create]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[sp_CampaignRecipient_Create];
 GO
 
-CREATE PROCEDURE [dbo].[sp_CampaignRecipient_Create]
+CREATE PROCEDURE [emailCampaign].[sp_CampaignRecipient_Create]
     @CampaignId INT,
     @EmailAddress NVARCHAR(255),
     @RecipientName NVARCHAR(255) = NULL,
@@ -187,7 +191,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    INSERT INTO CampaignRecipients (CampaignId, EmailAddress, RecipientName, PersonalizationData)
+    INSERT INTO [emailCampaign].[CampaignRecipients] (CampaignId, EmailAddress, RecipientName, PersonalizationData)
     VALUES (@CampaignId, @EmailAddress, @RecipientName, @PersonalizationData);
 
     SELECT CAST(SCOPE_IDENTITY() AS INT) AS RecipientId;
@@ -197,11 +201,11 @@ GO
 -- =============================================
 -- sp_CampaignRecipient_GetByCampaignId
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sp_CampaignRecipient_GetByCampaignId]') AND type in (N'P'))
-    DROP PROCEDURE [dbo].[sp_CampaignRecipient_GetByCampaignId];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_CampaignRecipient_GetByCampaignId]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[sp_CampaignRecipient_GetByCampaignId];
 GO
 
-CREATE PROCEDURE [dbo].[sp_CampaignRecipient_GetByCampaignId]
+CREATE PROCEDURE [emailCampaign].[sp_CampaignRecipient_GetByCampaignId]
     @CampaignId INT
 AS
 BEGIN
@@ -210,7 +214,7 @@ BEGIN
     SELECT
         Id, CampaignId, EmailAddress, RecipientName,
         PersonalizationData, EmailId, Sent, SentAt
-    FROM CampaignRecipients
+    FROM [emailCampaign].[CampaignRecipients]
     WHERE CampaignId = @CampaignId
     ORDER BY Id;
 END
@@ -219,11 +223,11 @@ GO
 -- =============================================
 -- sp_CampaignRecipient_Update
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sp_CampaignRecipient_Update]') AND type in (N'P'))
-    DROP PROCEDURE [dbo].[sp_CampaignRecipient_Update];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_CampaignRecipient_Update]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[sp_CampaignRecipient_Update];
 GO
 
-CREATE PROCEDURE [dbo].[sp_CampaignRecipient_Update]
+CREATE PROCEDURE [emailCampaign].[sp_CampaignRecipient_Update]
     @RecipientId INT,
     @EmailId INT = NULL,
     @Sent BIT,
@@ -232,12 +236,110 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    UPDATE CampaignRecipients
+    UPDATE [emailCampaign].[CampaignRecipients]
     SET
         EmailId = @EmailId,
         Sent = @Sent,
         SentAt = @SentAt
     WHERE Id = @RecipientId;
+END
+GO
+
+-- =============================================
+-- EmailCampaignPrograms Procedures
+-- =============================================
+
+-- sp_EmailCampaignPrograms_AddProgram
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailCampaignPrograms_AddProgram]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[sp_EmailCampaignPrograms_AddProgram];
+GO
+
+CREATE PROCEDURE [emailCampaign].[sp_EmailCampaignPrograms_AddProgram]
+    @EmailCampaignId INT,
+    @ProgramId INT,
+    @CreatedBy NVARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Check if mapping already exists
+    IF NOT EXISTS (
+        SELECT 1 FROM [emailCampaign].[EmailCampaignPrograms]
+        WHERE EmailCampaignId = @EmailCampaignId AND ProgramId = @ProgramId
+    )
+    BEGIN
+        INSERT INTO [emailCampaign].[EmailCampaignPrograms] (
+            EmailCampaignId, ProgramId, CreatedAtUtc, CreatedBy
+        )
+        VALUES (
+            @EmailCampaignId, @ProgramId, GETUTCDATE(), @CreatedBy
+        );
+    END
+
+    SELECT @@ROWCOUNT AS RowsAffected;
+END
+GO
+
+-- sp_EmailCampaignPrograms_RemoveProgram
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailCampaignPrograms_RemoveProgram]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[sp_EmailCampaignPrograms_RemoveProgram];
+GO
+
+CREATE PROCEDURE [emailCampaign].[sp_EmailCampaignPrograms_RemoveProgram]
+    @EmailCampaignId INT,
+    @ProgramId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DELETE FROM [emailCampaign].[EmailCampaignPrograms]
+    WHERE EmailCampaignId = @EmailCampaignId AND ProgramId = @ProgramId;
+
+    SELECT @@ROWCOUNT AS RowsAffected;
+END
+GO
+
+-- sp_EmailCampaignPrograms_GetByCampaignId
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailCampaignPrograms_GetByCampaignId]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[sp_EmailCampaignPrograms_GetByCampaignId];
+GO
+
+CREATE PROCEDURE [emailCampaign].[sp_EmailCampaignPrograms_GetByCampaignId]
+    @EmailCampaignId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        EmailCampaignId, ProgramId, CreatedAtUtc, UpdatedAtUtc, CreatedBy, UpdatedBy
+    FROM [emailCampaign].[EmailCampaignPrograms]
+    WHERE EmailCampaignId = @EmailCampaignId
+    ORDER BY CreatedAtUtc;
+END
+GO
+
+-- sp_EmailCampaignPrograms_GetByProgramId
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailCampaignPrograms_GetByProgramId]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[sp_EmailCampaignPrograms_GetByProgramId];
+GO
+
+CREATE PROCEDURE [emailCampaign].[sp_EmailCampaignPrograms_GetByProgramId]
+    @ProgramId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT
+        c.Id, c.Name, c.Description, c.Status,
+        c.FromAddress, c.FromName, c.Subject,
+        c.TotalRecipients, c.EmailsSent, c.EmailsDelivered,
+        c.EmailsOpened, c.EmailsClicked, c.EmailsFailed,
+        c.StartedAt, c.CompletedAt,
+        c.CreatedAt, c.UpdatedAt, c.CreatedBy, c.UpdatedBy
+    FROM [emailCampaign].[EmailCampaigns] c
+    INNER JOIN [emailCampaign].[EmailCampaignPrograms] ecp ON c.Id = ecp.EmailCampaignId
+    WHERE ecp.ProgramId = @ProgramId
+    ORDER BY c.CreatedAt DESC;
 END
 GO
 

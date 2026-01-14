@@ -8,12 +8,11 @@ GO
 -- =============================================
 -- sp_EmailTemplate_Create
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sp_EmailTemplate_Create]') AND type in (N'P'))
-    DROP PROCEDURE [dbo].[sp_EmailTemplate_Create];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailTemplate_Create]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[sp_EmailTemplate_Create];
 GO
 
-CREATE PROCEDURE [dbo].[sp_EmailTemplate_Create]
-    @TenantId NVARCHAR(50),
+CREATE PROCEDURE [emailCampaign].[sp_EmailTemplate_Create]
     @Name NVARCHAR(255),
     @Description NVARCHAR(1000),
     @Subject NVARCHAR(500),
@@ -25,13 +24,13 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    INSERT INTO EmailTemplates (
-        TenantId, Name, Description, Subject,
+    INSERT INTO [emailCampaign].[EmailTemplates] (
+        Name, Description, Subject,
         HtmlTemplate, TextTemplate, IsActive,
         CreatedAt, CreatedBy
     )
     VALUES (
-        @TenantId, @Name, @Description, @Subject,
+        @Name, @Description, @Subject,
         @HtmlTemplate, @TextTemplate, @IsActive,
         GETUTCDATE(), @CreatedBy
     );
@@ -43,44 +42,45 @@ GO
 -- =============================================
 -- sp_EmailTemplate_GetById
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sp_EmailTemplate_GetById]') AND type in (N'P'))
-    DROP PROCEDURE [dbo].[sp_EmailTemplate_GetById];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailTemplate_GetById]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[sp_EmailTemplate_GetById];
 GO
 
-CREATE PROCEDURE [dbo].[sp_EmailTemplate_GetById]
+CREATE PROCEDURE [emailCampaign].[sp_EmailTemplate_GetById]
     @TemplateId INT
 AS
 BEGIN
     SET NOCOUNT ON;
 
     SELECT
-        Id, TenantId, Name, Description, Subject,
+        Id, Name, Description, Subject,
         HtmlTemplate, TextTemplate, IsActive,
         CreatedAt, UpdatedAt, CreatedBy, UpdatedBy
-    FROM EmailTemplates
+    FROM [emailCampaign].[EmailTemplates]
     WHERE Id = @TemplateId;
 END
 GO
 
 -- =============================================
--- sp_EmailTemplate_GetByTenantId
+-- sp_EmailTemplate_GetAll
+-- Get all templates with optional active filter
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sp_EmailTemplate_GetByTenantId]') AND type in (N'P'))
-    DROP PROCEDURE [dbo].[sp_EmailTemplate_GetByTenantId];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailTemplate_GetAll]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[sp_EmailTemplate_GetAll];
 GO
 
-CREATE PROCEDURE [dbo].[sp_EmailTemplate_GetByTenantId]
-    @TenantId NVARCHAR(50)
+CREATE PROCEDURE [emailCampaign].[sp_EmailTemplate_GetAll]
+    @ActiveOnly BIT = 0
 AS
 BEGIN
     SET NOCOUNT ON;
 
     SELECT
-        Id, TenantId, Name, Description, Subject,
+        Id, Name, Description, Subject,
         HtmlTemplate, TextTemplate, IsActive,
         CreatedAt, UpdatedAt, CreatedBy, UpdatedBy
-    FROM EmailTemplates
-    WHERE TenantId = @TenantId
+    FROM [emailCampaign].[EmailTemplates]
+    WHERE @ActiveOnly = 0 OR IsActive = 1
     ORDER BY CreatedAt DESC;
 END
 GO
@@ -88,11 +88,11 @@ GO
 -- =============================================
 -- sp_EmailTemplate_Update
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sp_EmailTemplate_Update]') AND type in (N'P'))
-    DROP PROCEDURE [dbo].[sp_EmailTemplate_Update];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailTemplate_Update]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[sp_EmailTemplate_Update];
 GO
 
-CREATE PROCEDURE [dbo].[sp_EmailTemplate_Update]
+CREATE PROCEDURE [emailCampaign].[sp_EmailTemplate_Update]
     @TemplateId INT,
     @Name NVARCHAR(255),
     @Description NVARCHAR(1000),
@@ -105,7 +105,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    UPDATE EmailTemplates
+    UPDATE [emailCampaign].[EmailTemplates]
     SET
         Name = @Name,
         Description = @Description,
@@ -122,17 +122,17 @@ GO
 -- =============================================
 -- sp_EmailTemplate_Delete
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[sp_EmailTemplate_Delete]') AND type in (N'P'))
-    DROP PROCEDURE [dbo].[sp_EmailTemplate_Delete];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailTemplate_Delete]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[sp_EmailTemplate_Delete];
 GO
 
-CREATE PROCEDURE [dbo].[sp_EmailTemplate_Delete]
+CREATE PROCEDURE [emailCampaign].[sp_EmailTemplate_Delete]
     @TemplateId INT
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    DELETE FROM EmailTemplates
+    DELETE FROM [emailCampaign].[EmailTemplates]
     WHERE Id = @TemplateId;
 END
 GO
