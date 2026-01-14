@@ -16,7 +16,6 @@ public class EmailTemplateRepository : BaseRepository, IEmailTemplateRepository
     {
         var parameters = new[]
         {
-            new SqlParameter("@TenantId", template.TenantId),
             new SqlParameter("@Name", template.Name),
             new SqlParameter("@Description", template.Description),
             new SqlParameter("@Subject", template.Subject),
@@ -26,7 +25,7 @@ public class EmailTemplateRepository : BaseRepository, IEmailTemplateRepository
             new SqlParameter("@CreatedBy", template.CreatedBy)
         };
 
-        var templateId = await ExecuteScalarAsync<int>("sp_EmailTemplate_Create", parameters);
+        var templateId = await ExecuteScalarAsync<int>("[emailCampaign].[sp_EmailTemplate_Create]", parameters);
         return templateId;
     }
 
@@ -38,7 +37,7 @@ public class EmailTemplateRepository : BaseRepository, IEmailTemplateRepository
         };
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("sp_EmailTemplate_GetById", connection)
+        using var command = new SqlCommand("[emailCampaign].[sp_EmailTemplate_GetById]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
@@ -55,17 +54,17 @@ public class EmailTemplateRepository : BaseRepository, IEmailTemplateRepository
         return null;
     }
 
-    public async Task<List<EmailTemplate>> GetByTenantIdAsync(string tenantId)
+    public async Task<List<EmailTemplate>> GetAllAsync(bool activeOnly = false)
     {
         var parameters = new[]
         {
-            new SqlParameter("@TenantId", tenantId)
+            new SqlParameter("@ActiveOnly", activeOnly)
         };
 
         var templates = new List<EmailTemplate>();
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("sp_EmailTemplate_GetByTenantId", connection)
+        using var command = new SqlCommand("[emailCampaign].[sp_EmailTemplate_GetAll]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
@@ -96,7 +95,7 @@ public class EmailTemplateRepository : BaseRepository, IEmailTemplateRepository
             new SqlParameter("@UpdatedBy", template.UpdatedBy ?? string.Empty)
         };
 
-        await ExecuteNonQueryAsync("sp_EmailTemplate_Update", parameters);
+        await ExecuteNonQueryAsync("[emailCampaign].[sp_EmailTemplate_Update]", parameters);
     }
 
     public async Task DeleteAsync(int id)
@@ -106,7 +105,7 @@ public class EmailTemplateRepository : BaseRepository, IEmailTemplateRepository
             new SqlParameter("@TemplateId", id)
         };
 
-        await ExecuteNonQueryAsync("sp_EmailTemplate_Delete", parameters);
+        await ExecuteNonQueryAsync("[emailCampaign].[sp_EmailTemplate_Delete]", parameters);
     }
 
     private EmailTemplate MapTemplateFromReader(SqlDataReader reader)
@@ -114,7 +113,6 @@ public class EmailTemplateRepository : BaseRepository, IEmailTemplateRepository
         return new EmailTemplate
         {
             Id = reader.GetInt32("Id"),
-            TenantId = reader.GetString("TenantId"),
             Name = reader.GetString("Name"),
             Description = reader.GetString("Description"),
             Subject = reader.GetString("Subject"),

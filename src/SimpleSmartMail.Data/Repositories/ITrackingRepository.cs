@@ -9,6 +9,7 @@ public interface ITrackingRepository
     Task<List<EmailClick>> GetClicksByEmailIdAsync(int emailId);
     Task<List<EmailClick>> GetClicksByCampaignIdAsync(int campaignId);
     Task<int> AddUnsubscribeRequestAsync(UnsubscribeRequest request);
-    Task<bool> IsUnsubscribedAsync(string emailAddress, string tenantId);
-    Task<List<UnsubscribeRequest>> GetUnsubscribesByTenantIdAsync(string tenantId);
+    Task<bool> IsUnsubscribedAsync(string emailAddress, int? programId);
+    Task<List<UnsubscribeRequest>> GetUnsubscribesByProgramIdAsync(int? programId);
+    Task<List<UnsubscribeRequest>> GetAllUnsubscribesAsync(int pageNumber = 1, int pageSize = 50);
 }

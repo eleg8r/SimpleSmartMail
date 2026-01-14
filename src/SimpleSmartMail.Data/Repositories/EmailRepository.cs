@@ -17,7 +17,6 @@ public class EmailRepository : BaseRepository, IEmailRepository
     {
         var parameters = new[]
         {
-            new SqlParameter("@TenantId", email.TenantId),
             new SqlParameter("@FromAddress", email.FromAddress),
             new SqlParameter("@FromName", email.FromName),
             new SqlParameter("@ToAddress", email.ToAddress),
@@ -38,7 +37,7 @@ public class EmailRepository : BaseRepository, IEmailRepository
             new SqlParameter("@IsValid", email.IsValid)
         };
 
-        var emailId = await ExecuteScalarAsync<int>("sp_Email_Create", parameters);
+        var emailId = await ExecuteScalarAsync<int>("[emailCampaign].[sp_Email_Create]", parameters);
         return emailId;
     }
 
@@ -50,7 +49,7 @@ public class EmailRepository : BaseRepository, IEmailRepository
         };
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("sp_Email_GetById", connection)
+        using var command = new SqlCommand("[emailCampaign].[sp_Email_GetById]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
@@ -75,7 +74,7 @@ public class EmailRepository : BaseRepository, IEmailRepository
         };
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("sp_Email_GetByTrackingId", connection)
+        using var command = new SqlCommand("[emailCampaign].[sp_Email_GetByTrackingId]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
@@ -92,11 +91,10 @@ public class EmailRepository : BaseRepository, IEmailRepository
         return null;
     }
 
-    public async Task<List<Email>> GetByTenantIdAsync(string tenantId, int pageNumber = 1, int pageSize = 50)
+    public async Task<List<Email>> GetAllAsync(int pageNumber = 1, int pageSize = 50)
     {
         var parameters = new[]
         {
-            new SqlParameter("@TenantId", tenantId),
             new SqlParameter("@PageNumber", pageNumber),
             new SqlParameter("@PageSize", pageSize)
         };
@@ -104,7 +102,7 @@ public class EmailRepository : BaseRepository, IEmailRepository
         var emails = new List<Email>();
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("sp_Email_GetByTenantId", connection)
+        using var command = new SqlCommand("[emailCampaign].[sp_Email_GetAll]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
@@ -141,7 +139,7 @@ public class EmailRepository : BaseRepository, IEmailRepository
             new SqlParameter("@IsValid", email.IsValid)
         };
 
-        await ExecuteNonQueryAsync("sp_Email_Update", parameters);
+        await ExecuteNonQueryAsync("[emailCampaign].[sp_Email_Update]", parameters);
     }
 
     public async Task UpdateStatusAsync(int emailId, EmailStatus status)
@@ -152,7 +150,7 @@ public class EmailRepository : BaseRepository, IEmailRepository
             new SqlParameter("@Status", (int)status)
         };
 
-        await ExecuteNonQueryAsync("sp_Email_UpdateStatus", parameters);
+        await ExecuteNonQueryAsync("[emailCampaign].[sp_Email_UpdateStatus]", parameters);
     }
 
     public async Task AddAttachmentAsync(EmailAttachment attachment)
@@ -166,7 +164,7 @@ public class EmailRepository : BaseRepository, IEmailRepository
             new SqlParameter("@Content", attachment.Content)
         };
 
-        await ExecuteNonQueryAsync("sp_EmailAttachment_Create", parameters);
+        await ExecuteNonQueryAsync("[emailCampaign].[sp_EmailAttachment_Create]", parameters);
     }
 
     private Email MapEmailFromReader(SqlDataReader reader)
@@ -174,7 +172,6 @@ public class EmailRepository : BaseRepository, IEmailRepository
         return new Email
         {
             Id = reader.GetInt32("Id"),
-            TenantId = reader.GetString("TenantId"),
             FromAddress = reader.GetString("FromAddress"),
             FromName = reader.GetString("FromName"),
             ToAddress = reader.GetString("ToAddress"),
