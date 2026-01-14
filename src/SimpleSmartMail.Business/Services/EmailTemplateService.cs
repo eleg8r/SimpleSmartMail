@@ -17,7 +17,6 @@ public class EmailTemplateService : IEmailTemplateService
     {
         var template = new EmailTemplate
         {
-            TenantId = request.TenantId,
             Name = request.Name,
             Description = request.Description,
             Subject = request.Subject,
@@ -36,9 +35,9 @@ public class EmailTemplateService : IEmailTemplateService
         return await _templateRepository.GetByIdAsync(id);
     }
 
-    public async Task<List<EmailTemplate>> GetTemplatesByTenantIdAsync(string tenantId)
+    public async Task<List<EmailTemplate>> GetAllTemplatesAsync(bool activeOnly = false)
     {
-        return await _templateRepository.GetByTenantIdAsync(tenantId);
+        return await _templateRepository.GetAllAsync(activeOnly);
     }
 
     public async Task UpdateTemplateAsync(EmailTemplate template)

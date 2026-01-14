@@ -68,7 +68,6 @@ public class TrackingService : ITrackingService
 
             var click = new EmailClick
             {
-                TenantId = email.TenantId,
                 EmailId = email.Id,
                 CampaignId = email.CampaignId,
                 TrackingId = trackingId,
@@ -190,16 +189,15 @@ public class TrackingService : ITrackingService
         email.ErrorMessage = $"Bounced: {bounceReason}";
         await _emailRepository.UpdateAsync(email);
 
-        // Auto-unsubscribe for hard bounces
+        // Auto-unsubscribe for hard bounces (global unsubscribe - ProgramId NULL)
         if (IsHardBounce(bounceReason))
         {
             var unsubscribeRequest = new UnsubscribeRequest
             {
-                TenantId = email.TenantId,
                 EmailAddress = email.ToAddress,
+                ProgramId = null, // Global unsubscribe
                 TrackingId = email.TrackingId,
                 Reason = $"Auto-unsubscribed: Hard bounce - {bounceReason}",
-                GlobalUnsubscribe = true, // Prevent all future emails
                 UnsubscribedAt = DateTime.UtcNow
             };
 
@@ -213,14 +211,13 @@ public class TrackingService : ITrackingService
         var email = await _emailRepository.GetByIdAsync(emailId);
         if (email == null) return;
 
-        // Auto-unsubscribe for spam complaints (always global)
+        // Auto-unsubscribe for spam complaints (always global - ProgramId NULL)
         var unsubscribeRequest = new UnsubscribeRequest
         {
-            TenantId = email.TenantId,
             EmailAddress = email.ToAddress,
+            ProgramId = null, // Global unsubscribe
             TrackingId = email.TrackingId,
             Reason = "Auto-unsubscribed: Spam complaint",
-            GlobalUnsubscribe = true,
             UnsubscribedAt = DateTime.UtcNow
         };
 
@@ -246,9 +243,9 @@ public class TrackingService : ITrackingService
         return await _trackingRepository.AddUnsubscribeRequestAsync(request);
     }
 
-    public async Task<bool> IsUnsubscribedAsync(string emailAddress, string tenantId)
+    public async Task<bool> IsUnsubscribedAsync(string emailAddress, int? programId)
     {
-        return await _trackingRepository.IsUnsubscribedAsync(emailAddress, tenantId);
+        return await _trackingRepository.IsUnsubscribedAsync(emailAddress, programId);
     }
 
     public async Task<List<EmailClick>> GetClicksByEmailIdAsync(int emailId)

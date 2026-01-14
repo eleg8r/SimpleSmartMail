@@ -11,7 +11,7 @@ public interface ITrackingService
     Task<string> InjectUnsubscribeLinkAsync(string htmlBody, Guid trackingId, string baseUrl);
     Task<string?> GetOriginalUrlAsync(Guid trackingId, string trackedUrl);
     Task<int> AddUnsubscribeRequestAsync(UnsubscribeRequest request);
-    Task<bool> IsUnsubscribedAsync(string emailAddress, string tenantId);
+    Task<bool> IsUnsubscribedAsync(string emailAddress, int? programId);
     Task HandleBounceAsync(int emailId, string bounceReason);
     Task HandleSpamComplaintAsync(int emailId);
     Task<List<EmailClick>> GetClicksByEmailIdAsync(int emailId);

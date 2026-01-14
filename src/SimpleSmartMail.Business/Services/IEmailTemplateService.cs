@@ -7,7 +7,7 @@ public interface IEmailTemplateService
 {
     Task<int> CreateTemplateAsync(CreateTemplateRequest request);
     Task<EmailTemplate?> GetTemplateByIdAsync(int id);
-    Task<List<EmailTemplate>> GetTemplatesByTenantIdAsync(string tenantId);
+    Task<List<EmailTemplate>> GetAllTemplatesAsync(bool activeOnly = false);
     Task UpdateTemplateAsync(EmailTemplate template);
     Task DeleteTemplateAsync(int id);
 }

@@ -98,7 +98,7 @@ public class EmailService : IEmailService
             }
 
             // Check if recipient is unsubscribed
-            var isUnsubscribed = await _trackingService.IsUnsubscribedAsync(request.ToAddress, request.TenantId);
+            var isUnsubscribed = await _trackingService.IsUnsubscribedAsync(request.ToAddress, request.ProgramId);
             if (isUnsubscribed)
             {
                 _logger.LogWarning("Email to {EmailAddress} blocked - recipient unsubscribed", request.ToAddress);
@@ -112,7 +112,6 @@ public class EmailService : IEmailService
             // Create email entity
             var email = new Email
             {
-                TenantId = request.TenantId,
                 FromAddress = request.FromAddress,
                 FromName = request.FromName,
                 ToAddress = request.ToAddress,
@@ -249,9 +248,9 @@ public class EmailService : IEmailService
         return await _emailRepository.GetByTrackingIdAsync(trackingId);
     }
 
-    public async Task<List<Email>> GetEmailsByTenantIdAsync(string tenantId, int pageNumber = 1, int pageSize = 50)
+    public async Task<List<Email>> GetAllEmailsAsync(int pageNumber = 1, int pageSize = 50)
     {
-        return await _emailRepository.GetByTenantIdAsync(tenantId, pageNumber, pageSize);
+        return await _emailRepository.GetAllAsync(pageNumber, pageSize);
     }
 
     private async Task<bool> SendEmailWithRetryAsync(Email email, EmailProviderType providerType, int maxRetries = 3)

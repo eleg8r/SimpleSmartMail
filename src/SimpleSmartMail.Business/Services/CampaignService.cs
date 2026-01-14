@@ -40,7 +40,6 @@ public class CampaignService : ICampaignService
     {
         var campaign = new EmailCampaign
         {
-            TenantId = request.TenantId,
             Name = request.Name,
             Description = request.Description,
             Status = CampaignStatus.Draft,
@@ -60,6 +59,12 @@ public class CampaignService : ICampaignService
         };
 
         var campaignId = await _campaignRepository.CreateAsync(campaign);
+
+        // Add program mappings
+        foreach (var programId in request.ProgramIds)
+        {
+            await _campaignRepository.AddProgramAsync(campaignId, programId, request.CreatedBy);
+        }
 
         // Auto-generate authentication tokens if enabled
         if (request.AutoGenerateAuthTokens && !string.IsNullOrEmpty(request.AutoAuthBaseUrl))
@@ -129,9 +134,9 @@ public class CampaignService : ICampaignService
         return await _campaignRepository.GetByIdAsync(id);
     }
 
-    public async Task<List<EmailCampaign>> GetCampaignsByTenantIdAsync(string tenantId)
+    public async Task<List<EmailCampaign>> GetAllCampaignsAsync(int pageNumber = 1, int pageSize = 50)
     {
-        return await _campaignRepository.GetByTenantIdAsync(tenantId);
+        return await _campaignRepository.GetAllAsync(pageNumber, pageSize);
     }
 
     public async Task UpdateCampaignStatusAsync(int campaignId, CampaignStatus status)
@@ -210,8 +215,25 @@ public class CampaignService : ICampaignService
                         continue;
                     }
 
-                    // Check if recipient is unsubscribed
-                    var isUnsubscribed = await _trackingService.IsUnsubscribedAsync(recipient.EmailAddress, campaign.TenantId);
+                    // Check if recipient is unsubscribed from any of the campaign's programs
+                    var campaignPrograms = await _campaignRepository.GetProgramsByCampaignIdAsync(campaign.Id);
+                    bool isUnsubscribed = false;
+
+                    foreach (var program in campaignPrograms)
+                    {
+                        if (await _trackingService.IsUnsubscribedAsync(recipient.EmailAddress, program.ProgramId))
+                        {
+                            isUnsubscribed = true;
+                            break;
+                        }
+                    }
+
+                    // Also check global unsubscribe (ProgramId = NULL)
+                    if (!isUnsubscribed && await _trackingService.IsUnsubscribedAsync(recipient.EmailAddress, null))
+                    {
+                        isUnsubscribed = true;
+                    }
+
                     if (isUnsubscribed)
                     {
                         _logger.LogInformation("Skipping unsubscribed recipient {EmailAddress} for campaign {CampaignId}",
@@ -240,9 +262,12 @@ public class CampaignService : ICampaignService
                         }
                     }
 
+                    // Use first program ID for unsubscribe checks (or null if no programs)
+                    var firstProgramId = campaignPrograms.Any() ? (int?)campaignPrograms.First().ProgramId : null;
+
                     var emailRequest = new SendEmailRequest
                     {
-                        TenantId = campaign.TenantId,
+                        ProgramId = firstProgramId,
                         FromAddress = campaign.FromAddress,
                         FromName = campaign.FromName,
                         ToAddress = recipient.EmailAddress,
@@ -303,5 +328,27 @@ public class CampaignService : ICampaignService
             campaign.Status = CampaignStatus.Failed;
             await _campaignRepository.UpdateAsync(campaign);
         }
+    }
+
+    public async Task AddProgramToCampaignAsync(int campaignId, int programId, string createdBy)
+    {
+        await _campaignRepository.AddProgramAsync(campaignId, programId, createdBy);
+        _logger.LogInformation("Added program {ProgramId} to campaign {CampaignId}", programId, campaignId);
+    }
+
+    public async Task RemoveProgramFromCampaignAsync(int campaignId, int programId)
+    {
+        await _campaignRepository.RemoveProgramAsync(campaignId, programId);
+        _logger.LogInformation("Removed program {ProgramId} from campaign {CampaignId}", programId, campaignId);
+    }
+
+    public async Task<List<EmailCampaignProgram>> GetCampaignProgramsAsync(int campaignId)
+    {
+        return await _campaignRepository.GetProgramsByCampaignIdAsync(campaignId);
+    }
+
+    public async Task<List<EmailCampaign>> GetCampaignsByProgramIdAsync(int programId)
+    {
+        return await _campaignRepository.GetCampaignsByProgramIdAsync(programId);
     }
 }
