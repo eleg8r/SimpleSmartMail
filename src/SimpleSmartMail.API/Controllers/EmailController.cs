@@ -99,19 +99,19 @@ public class EmailController : ControllerBase
     }
 
     /// <summary>
-    /// Get emails by tenant ID
+    /// Get all emails with pagination
     /// </summary>
-    [HttpGet("tenant/{tenantId}")]
-    public async Task<ActionResult> GetEmailsByTenantId(string tenantId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 50)
+    [HttpGet]
+    public async Task<ActionResult> GetAllEmails([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 50)
     {
         try
         {
-            var emails = await _emailService.GetEmailsByTenantIdAsync(tenantId, pageNumber, pageSize);
-            return Ok(new { TenantId = tenantId, PageNumber = pageNumber, PageSize = pageSize, Emails = emails });
+            var emails = await _emailService.GetAllEmailsAsync(pageNumber, pageSize);
+            return Ok(new { PageNumber = pageNumber, PageSize = pageSize, Emails = emails });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving emails for tenant {TenantId}", tenantId);
+            _logger.LogError(ex, "Error retrieving emails");
             return StatusCode(500, new { Message = "Internal server error" });
         }
     }

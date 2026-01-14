@@ -90,10 +90,10 @@ public class TrackingController : ControllerBase
                 Reason = reason,
                 IpAddress = ipAddress,
                 UserAgent = userAgent,
-                GlobalUnsubscribe = false
+                ProgramId = null // NULL = global unsubscribe
             };
 
-            // This would need to be enhanced to get tenant and email info from tracking ID
+            // This would need to be enhanced to get program and email info from tracking ID
             // For now, returning a simple page
             await _trackingService.AddUnsubscribeRequestAsync(request);
 

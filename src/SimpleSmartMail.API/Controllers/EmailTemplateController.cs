@@ -66,19 +66,19 @@ public class EmailTemplateController : ControllerBase
     }
 
     /// <summary>
-    /// Get all templates for a tenant
+    /// Get all templates with optional active filter
     /// </summary>
-    [HttpGet("tenant/{tenantId}")]
-    public async Task<ActionResult<List<EmailTemplate>>> GetTemplatesByTenant(string tenantId)
+    [HttpGet]
+    public async Task<ActionResult<List<EmailTemplate>>> GetAllTemplates([FromQuery] bool activeOnly = false)
     {
         try
         {
-            var templates = await _templateService.GetTemplatesByTenantIdAsync(tenantId);
+            var templates = await _templateService.GetAllTemplatesAsync(activeOnly);
             return Ok(templates);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving templates for tenant {TenantId}", tenantId);
+            _logger.LogError(ex, "Error retrieving templates");
             return StatusCode(500, new { Message = "Internal server error" });
         }
     }

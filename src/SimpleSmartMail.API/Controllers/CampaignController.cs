@@ -66,19 +66,19 @@ public class CampaignController : ControllerBase
     }
 
     /// <summary>
-    /// Get all campaigns for a tenant
+    /// Get all campaigns with pagination
     /// </summary>
-    [HttpGet("tenant/{tenantId}")]
-    public async Task<ActionResult> GetCampaignsByTenant(string tenantId)
+    [HttpGet]
+    public async Task<ActionResult> GetAllCampaigns([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 50)
     {
         try
         {
-            var campaigns = await _campaignService.GetCampaignsByTenantIdAsync(tenantId);
-            return Ok(campaigns);
+            var campaigns = await _campaignService.GetAllCampaignsAsync(pageNumber, pageSize);
+            return Ok(new { PageNumber = pageNumber, PageSize = pageSize, Campaigns = campaigns });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving campaigns for tenant {TenantId}", tenantId);
+            _logger.LogError(ex, "Error retrieving campaigns");
             return StatusCode(500, new { Message = "Internal server error" });
         }
     }
@@ -132,6 +132,78 @@ public class CampaignController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating campaign status {CampaignId}", id);
+            return StatusCode(500, new { Message = "Internal server error" });
+        }
+    }
+
+    /// <summary>
+    /// Add a program to a campaign
+    /// </summary>
+    [HttpPost("{id}/programs/{programId}")]
+    public async Task<ActionResult> AddProgramToCampaign(int id, int programId, [FromQuery] string createdBy = "System")
+    {
+        try
+        {
+            await _campaignService.AddProgramToCampaignAsync(id, programId, createdBy);
+            return Ok(new { Message = "Program added to campaign successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding program {ProgramId} to campaign {CampaignId}", programId, id);
+            return StatusCode(500, new { Message = "Internal server error" });
+        }
+    }
+
+    /// <summary>
+    /// Remove a program from a campaign
+    /// </summary>
+    [HttpDelete("{id}/programs/{programId}")]
+    public async Task<ActionResult> RemoveProgramFromCampaign(int id, int programId)
+    {
+        try
+        {
+            await _campaignService.RemoveProgramFromCampaignAsync(id, programId);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing program {ProgramId} from campaign {CampaignId}", programId, id);
+            return StatusCode(500, new { Message = "Internal server error" });
+        }
+    }
+
+    /// <summary>
+    /// Get all programs for a campaign
+    /// </summary>
+    [HttpGet("{id}/programs")]
+    public async Task<ActionResult> GetCampaignPrograms(int id)
+    {
+        try
+        {
+            var programs = await _campaignService.GetCampaignProgramsAsync(id);
+            return Ok(programs);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving programs for campaign {CampaignId}", id);
+            return StatusCode(500, new { Message = "Internal server error" });
+        }
+    }
+
+    /// <summary>
+    /// Get all campaigns for a specific program
+    /// </summary>
+    [HttpGet("programs/{programId}")]
+    public async Task<ActionResult> GetCampaignsByProgram(int programId)
+    {
+        try
+        {
+            var campaigns = await _campaignService.GetCampaignsByProgramIdAsync(programId);
+            return Ok(campaigns);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving campaigns for program {ProgramId}", programId);
             return StatusCode(500, new { Message = "Internal server error" });
         }
     }
