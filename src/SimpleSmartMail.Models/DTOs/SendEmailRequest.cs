@@ -4,8 +4,7 @@ namespace SimpleSmartMail.Models.DTOs;
 
 public class SendEmailRequest
 {
-    [Required(ErrorMessage = "TenantId is required")]
-    public string TenantId { get; set; } = string.Empty;
+    public int? ProgramId { get; set; } // Optional - for unsubscribe checks
 
     [Required(ErrorMessage = "From address is required")]
     [EmailAddress(ErrorMessage = "Invalid from email address")]

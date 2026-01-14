@@ -5,7 +5,8 @@ namespace SimpleSmartMail.Models.DTOs;
 public class CreateCampaignRequest
 {
     [Required]
-    public string TenantId { get; set; } = string.Empty;
+    [MinLength(1, ErrorMessage = "At least one program must be specified")]
+    public List<int> ProgramIds { get; set; } = new();
 
     [Required]
     [MaxLength(200)]
