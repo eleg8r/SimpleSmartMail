@@ -27,41 +27,9 @@ public class TrackingService : ITrackingService
     {
         try
         {
-            // Call the dumb repository method (just records the event)
             var result = await _trackingRepository.RecordEmailOpenAsync(trackingId, ipAddress, userAgent);
-
-            if (result == 0)
-            {
-                _logger.LogWarning("Email not found for tracking ID {TrackingId}", trackingId);
-                return 0;
-            }
-
-            // Business logic: Update email status to Opened
-            var email = await _emailRepository.GetByTrackingIdAsync(trackingId);
-            if (email == null)
-            {
-                _logger.LogWarning("Email not found for tracking ID {TrackingId} during update", trackingId);
-                return 0;
-            }
-
-            // Update status only if not already opened or higher
-            if (email.Status < EmailStatus.Opened)
-            {
-                email.Status = EmailStatus.Opened;
-            }
-
-            // Mark as tracked and set first open time
-            email.OpenTracked = true;
-            email.OpenedAt ??= DateTime.UtcNow;
-
-            // Increment open count
-            email.OpenCount++;
-
-            // Save changes
-            await _emailRepository.UpdateAsync(email);
-
             _logger.LogInformation("Recorded email open for tracking ID {TrackingId}", trackingId);
-            return 1;
+            return result;
         }
         catch (Exception ex)
         {
@@ -74,7 +42,6 @@ public class TrackingService : ITrackingService
     {
         try
         {
-            // Business logic: Get email to populate click data
             var email = await _emailRepository.GetByTrackingIdAsync(trackingId);
             if (email == null)
             {
@@ -82,7 +49,6 @@ public class TrackingService : ITrackingService
                 return 0;
             }
 
-            // Create click record
             var click = new EmailClick
             {
                 EmailId = email.Id,
@@ -96,21 +62,7 @@ public class TrackingService : ITrackingService
                 UserAgent = userAgent
             };
 
-            // Call dumb repository method (just inserts the click)
             var clickId = await _trackingRepository.RecordEmailClickAsync(click);
-
-            // Business logic: Update email click tracking
-            if (email.Status < EmailStatus.Clicked)
-            {
-                email.Status = EmailStatus.Clicked;
-            }
-
-            email.ClickTracked = true;
-            email.FirstClickedAt ??= DateTime.UtcNow;
-            email.ClickCount++;
-
-            // Save changes
-            await _emailRepository.UpdateAsync(email);
 
             _logger.LogInformation("Recorded click for tracking ID {TrackingId}, URL: {Url}", trackingId, url);
             return clickId;
