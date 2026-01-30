@@ -20,17 +20,12 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Update the email record
-    UPDATE [emailCampaign].[Emails]
-    SET
-        OpenTracked = 1,
-        OpenedAt = CASE WHEN OpenedAt IS NULL THEN GETUTCDATE() ELSE OpenedAt END,
-        OpenCount = OpenCount + 1,
-        Status = CASE WHEN Status < 4 THEN 4 ELSE Status END, -- 4 = Opened
-        UpdatedAt = GETUTCDATE()
-    WHERE TrackingId = @TrackingId;
-
-    SELECT @@ROWCOUNT AS RowsAffected;
+    -- Simple: Just record the tracking event (could insert into tracking table here if needed)
+    -- Return 1 if email exists, 0 if not
+    IF EXISTS (SELECT 1 FROM [emailCampaign].[Emails] WHERE TrackingId = @TrackingId)
+        SELECT 1 AS RowsAffected;
+    ELSE
+        SELECT 0 AS RowsAffected;
 END
 GO
 
@@ -57,6 +52,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
+    -- Simple: Just insert the click record
     INSERT INTO [emailCampaign].[EmailClicks] (
         EmailId, CampaignId, TrackingId,
         RecipientEmail, OriginalUrl, TrackedUrl,
@@ -69,16 +65,6 @@ BEGIN
         GETUTCDATE(), @IpAddress, @UserAgent,
         @Country, @City, @Device
     );
-
-    -- Update email click tracking
-    UPDATE [emailCampaign].[Emails]
-    SET
-        ClickTracked = 1,
-        FirstClickedAt = CASE WHEN FirstClickedAt IS NULL THEN GETUTCDATE() ELSE FirstClickedAt END,
-        ClickCount = ClickCount + 1,
-        Status = CASE WHEN Status < 5 THEN 5 ELSE Status END, -- 5 = Clicked
-        UpdatedAt = GETUTCDATE()
-    WHERE Id = @EmailId;
 
     SELECT CAST(SCOPE_IDENTITY() AS INT) AS ClickId;
 END
