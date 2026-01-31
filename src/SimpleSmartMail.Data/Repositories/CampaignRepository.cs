@@ -35,7 +35,7 @@ public class CampaignRepository : BaseRepository, ICampaignRepository
             new SqlParameter("@CreatedBy", campaign.CreatedBy)
         };
 
-        var campaignId = await ExecuteScalarAsync<int>("[emailCampaign].[sp_Campaign_Create]", parameters);
+        var campaignId = await ExecuteScalarAsync<int>("[emailCampaign].[Campaign_Create]", parameters);
         return campaignId;
     }
 
@@ -47,7 +47,7 @@ public class CampaignRepository : BaseRepository, ICampaignRepository
         };
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("[emailCampaign].[sp_Campaign_GetById]", connection)
+        using var command = new SqlCommand("[emailCampaign].[Campaign_GetById]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
@@ -75,7 +75,7 @@ public class CampaignRepository : BaseRepository, ICampaignRepository
         var campaigns = new List<EmailCampaign>();
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("[emailCampaign].[sp_Campaign_GetAll]", connection)
+        using var command = new SqlCommand("[emailCampaign].[Campaign_GetAll]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
@@ -106,7 +106,7 @@ public class CampaignRepository : BaseRepository, ICampaignRepository
             new SqlParameter("@UpdatedBy", campaign.UpdatedBy ?? string.Empty)
         };
 
-        await ExecuteNonQueryAsync("[emailCampaign].[sp_Campaign_Update]", parameters);
+        await ExecuteNonQueryAsync("[emailCampaign].[Campaign_Update]", parameters);
     }
 
     public async Task UpdateStatisticsAsync(int campaignId, int emailsSent, int emailsDelivered,
@@ -122,7 +122,7 @@ public class CampaignRepository : BaseRepository, ICampaignRepository
             new SqlParameter("@EmailsFailed", emailsFailed)
         };
 
-        await ExecuteNonQueryAsync("[emailCampaign].[sp_Campaign_UpdateStatistics]", parameters);
+        await ExecuteNonQueryAsync("[emailCampaign].[Campaign_UpdateStatistics]", parameters);
     }
 
     public async Task AddRecipientAsync(CampaignRecipient recipient)
@@ -135,7 +135,7 @@ public class CampaignRepository : BaseRepository, ICampaignRepository
             new SqlParameter("@PersonalizationData", (object?)recipient.PersonalizationData ?? DBNull.Value)
         };
 
-        await ExecuteNonQueryAsync("[emailCampaign].[sp_CampaignRecipient_Create]", parameters);
+        await ExecuteNonQueryAsync("[emailCampaign].[CampaignRecipient_Create]", parameters);
     }
 
     public async Task<List<CampaignRecipient>> GetRecipientsAsync(int campaignId)
@@ -148,7 +148,7 @@ public class CampaignRepository : BaseRepository, ICampaignRepository
         var recipients = new List<CampaignRecipient>();
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("[emailCampaign].[sp_CampaignRecipient_GetByCampaignId]", connection)
+        using var command = new SqlCommand("[emailCampaign].[CampaignRecipient_GetByCampaignId]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
@@ -175,7 +175,7 @@ public class CampaignRepository : BaseRepository, ICampaignRepository
             new SqlParameter("@SentAt", (object?)recipient.SentAt ?? DBNull.Value)
         };
 
-        await ExecuteNonQueryAsync("[emailCampaign].[sp_CampaignRecipient_Update]", parameters);
+        await ExecuteNonQueryAsync("[emailCampaign].[CampaignRecipient_Update]", parameters);
     }
 
     public async Task AddProgramAsync(int campaignId, int programId, string createdBy)
@@ -187,7 +187,7 @@ public class CampaignRepository : BaseRepository, ICampaignRepository
             new SqlParameter("@CreatedBy", createdBy)
         };
 
-        await ExecuteNonQueryAsync("[emailCampaign].[sp_EmailCampaignPrograms_AddProgram]", parameters);
+        await ExecuteNonQueryAsync("[emailCampaign].[EmailCampaignPrograms_AddProgram]", parameters);
     }
 
     public async Task RemoveProgramAsync(int campaignId, int programId)
@@ -198,7 +198,7 @@ public class CampaignRepository : BaseRepository, ICampaignRepository
             new SqlParameter("@ProgramId", programId)
         };
 
-        await ExecuteNonQueryAsync("[emailCampaign].[sp_EmailCampaignPrograms_RemoveProgram]", parameters);
+        await ExecuteNonQueryAsync("[emailCampaign].[EmailCampaignPrograms_RemoveProgram]", parameters);
     }
 
     public async Task<List<EmailCampaignProgram>> GetProgramsByCampaignIdAsync(int campaignId)
@@ -211,7 +211,7 @@ public class CampaignRepository : BaseRepository, ICampaignRepository
         var programs = new List<EmailCampaignProgram>();
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("[emailCampaign].[sp_EmailCampaignPrograms_GetByCampaignId]", connection)
+        using var command = new SqlCommand("[emailCampaign].[EmailCampaignPrograms_GetByCampaignId]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
@@ -246,7 +246,7 @@ public class CampaignRepository : BaseRepository, ICampaignRepository
         var campaigns = new List<EmailCampaign>();
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("[emailCampaign].[sp_EmailCampaignPrograms_GetByProgramId]", connection)
+        using var command = new SqlCommand("[emailCampaign].[EmailCampaignPrograms_GetByProgramId]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };

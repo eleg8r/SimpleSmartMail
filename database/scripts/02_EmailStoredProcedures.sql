@@ -6,13 +6,13 @@ USE SimpleSmartMailDb;
 GO
 
 -- =============================================
--- sp_Email_Create
+-- Email_Create
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Email_Create]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Email_Create];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Email_Create]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Email_Create];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Email_Create]
+CREATE PROCEDURE [emailCampaign].[Email_Create]
     @FromAddress NVARCHAR(255),
     @FromName NVARCHAR(255),
     @ToAddress NVARCHAR(255),
@@ -53,13 +53,13 @@ END
 GO
 
 -- =============================================
--- sp_Email_GetById
+-- Email_GetById
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Email_GetById]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Email_GetById];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Email_GetById]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Email_GetById];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Email_GetById]
+CREATE PROCEDURE [emailCampaign].[Email_GetById]
     @EmailId INT
 AS
 BEGIN
@@ -79,13 +79,13 @@ END
 GO
 
 -- =============================================
--- sp_Email_GetByTrackingId
+-- Email_GetByTrackingId
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Email_GetByTrackingId]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Email_GetByTrackingId];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Email_GetByTrackingId]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Email_GetByTrackingId];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Email_GetByTrackingId]
+CREATE PROCEDURE [emailCampaign].[Email_GetByTrackingId]
     @TrackingId UNIQUEIDENTIFIER
 AS
 BEGIN
@@ -105,14 +105,14 @@ END
 GO
 
 -- =============================================
--- sp_Email_GetAll
+-- Email_GetAll
 -- Get all emails with pagination
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Email_GetAll]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Email_GetAll];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Email_GetAll]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Email_GetAll];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Email_GetAll]
+CREATE PROCEDURE [emailCampaign].[Email_GetAll]
     @PageNumber INT = 1,
     @PageSize INT = 50
 AS
@@ -137,13 +137,13 @@ END
 GO
 
 -- =============================================
--- sp_Email_Update
+-- Email_Update
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Email_Update]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Email_Update];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Email_Update]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Email_Update];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Email_Update]
+CREATE PROCEDURE [emailCampaign].[Email_Update]
     @EmailId INT,
     @Status INT,
     @OpenTracked BIT,
@@ -183,13 +183,13 @@ END
 GO
 
 -- =============================================
--- sp_Email_UpdateStatus
+-- Email_UpdateStatus
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Email_UpdateStatus]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Email_UpdateStatus];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Email_UpdateStatus]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Email_UpdateStatus];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Email_UpdateStatus]
+CREATE PROCEDURE [emailCampaign].[Email_UpdateStatus]
     @EmailId INT,
     @Status INT
 AS
@@ -205,13 +205,13 @@ END
 GO
 
 -- =============================================
--- sp_EmailAttachment_Create
+-- EmailAttachment_Create
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailAttachment_Create]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_EmailAttachment_Create];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[EmailAttachment_Create]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[EmailAttachment_Create];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_EmailAttachment_Create]
+CREATE PROCEDURE [emailCampaign].[EmailAttachment_Create]
     @EmailId INT,
     @FileName NVARCHAR(255),
     @ContentType NVARCHAR(100),

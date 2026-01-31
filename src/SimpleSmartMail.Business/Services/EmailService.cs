@@ -10,12 +10,12 @@ namespace SimpleSmartMail.Business.Services;
 
 public class EmailService : IEmailService
 {
-    private readonly IEmailRepository _emailRepository;
-    private readonly ITrackingService _trackingService;
-    private readonly IEmailValidationService _emailValidationService;
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<EmailService> _logger;
-    private readonly Dictionary<EmailProviderType, IEmailProvider> _emailProviders;
+    private readonly IEmailRepository emailRepository;
+    private readonly ITrackingService trackingService;
+    private readonly IEmailValidationService emailValidationService;
+    private readonly IConfiguration configuration;
+    private readonly ILogger<EmailService> logger;
+    private readonly Dictionary<EmailProviderType, IEmailProvider> emailProviders;
 
     public EmailService(
         IEmailRepository emailRepository,
@@ -26,13 +26,13 @@ public class EmailService : IEmailService
         SmtpEmailProvider smtpProvider,
         SendGridEmailProvider sendGridProvider)
     {
-        _emailRepository = emailRepository;
-        _trackingService = trackingService;
-        _emailValidationService = emailValidationService;
-        _configuration = configuration;
-        _logger = logger;
+        this.emailRepository = emailRepository;
+        this.trackingService = trackingService;
+        this.emailValidationService = emailValidationService;
+        this.configuration = configuration;
+        this.logger = logger;
 
-        _emailProviders = new Dictionary<EmailProviderType, IEmailProvider>
+        this.emailProviders = new Dictionary<EmailProviderType, IEmailProvider>
         {
             { EmailProviderType.Smtp, smtpProvider },
             { EmailProviderType.SendGrid, sendGridProvider }
@@ -47,14 +47,14 @@ public class EmailService : IEmailService
             var validationErrors = new List<string>();
 
             // Validate To address
-            var toValidation = await _emailValidationService.ValidateEmailAsync(request.ToAddress);
+            var toValidation = await this.emailValidationService.ValidateEmailAsync(request.ToAddress);
             if (!toValidation.IsValid)
             {
                 validationErrors.Add($"To: {string.Join(", ", toValidation.Errors)}");
             }
 
             // Validate From address
-            var fromValidation = await _emailValidationService.ValidateEmailAsync(request.FromAddress);
+            var fromValidation = await this.emailValidationService.ValidateEmailAsync(request.FromAddress);
             if (!fromValidation.IsValid)
             {
                 validationErrors.Add($"From: {string.Join(", ", fromValidation.Errors)}");
@@ -65,7 +65,7 @@ public class EmailService : IEmailService
             {
                 foreach (var cc in request.Cc)
                 {
-                    var ccValidation = await _emailValidationService.ValidateEmailAsync(cc);
+                    var ccValidation = await this.emailValidationService.ValidateEmailAsync(cc);
                     if (!ccValidation.IsValid)
                     {
                         validationErrors.Add($"CC ({cc}): {string.Join(", ", ccValidation.Errors)}");
@@ -78,7 +78,7 @@ public class EmailService : IEmailService
             {
                 foreach (var bcc in request.Bcc)
                 {
-                    var bccValidation = await _emailValidationService.ValidateEmailAsync(bcc);
+                    var bccValidation = await this.emailValidationService.ValidateEmailAsync(bcc);
                     if (!bccValidation.IsValid)
                     {
                         validationErrors.Add($"BCC ({bcc}): {string.Join(", ", bccValidation.Errors)}");
@@ -89,7 +89,7 @@ public class EmailService : IEmailService
             // If validation failed, return error
             if (validationErrors.Any())
             {
-                _logger.LogWarning("Email validation failed: {Errors}", string.Join("; ", validationErrors));
+                this.logger.LogWarning("Email validation failed: {Errors}", string.Join("; ", validationErrors));
                 return new SendEmailResponse
                 {
                     Success = false,
@@ -98,10 +98,10 @@ public class EmailService : IEmailService
             }
 
             // Check if recipient is unsubscribed
-            var isUnsubscribed = await _trackingService.IsUnsubscribedAsync(request.ToAddress, request.ProgramId);
+            var isUnsubscribed = await this.trackingService.IsUnsubscribedAsync(request.ToAddress, request.ProgramId);
             if (isUnsubscribed)
             {
-                _logger.LogWarning("Email to {EmailAddress} blocked - recipient unsubscribed", request.ToAddress);
+                this.logger.LogWarning("Email to {EmailAddress} blocked - recipient unsubscribed", request.ToAddress);
                 return new SendEmailResponse
                 {
                     Success = false,
@@ -148,15 +148,15 @@ public class EmailService : IEmailService
             // Integrate tracking features
             if (!string.IsNullOrEmpty(email.HtmlBody))
             {
-                var baseUrl = _configuration["TrackingSettings:BaseUrl"] ?? "https://localhost:5001";
-                var enableTracking = _configuration.GetValue<bool>("TrackingSettings:EnableTracking", true);
+                var baseUrl = this.configuration["TrackingSettings:BaseUrl"] ?? "https://localhost:5001";
+                var enableTracking = this.configuration.GetValue<bool>("TrackingSettings:EnableTracking", true);
 
                 if (enableTracking)
                 {
                     // Inject open tracking pixel
                     if (request.EnableOpenTracking)
                     {
-                        email.HtmlBody = await _trackingService.InjectTrackingPixelAsync(
+                        email.HtmlBody = await this.trackingService.InjectTrackingPixelAsync(
                             email.HtmlBody,
                             email.TrackingId,
                             baseUrl);
@@ -165,14 +165,14 @@ public class EmailService : IEmailService
                     // Replace links with tracked URLs
                     if (request.EnableClickTracking)
                     {
-                        email.HtmlBody = await _trackingService.ReplaceLinksWithTrackedUrlsAsync(
+                        email.HtmlBody = await this.trackingService.ReplaceLinksWithTrackedUrlsAsync(
                             email.HtmlBody,
                             email.TrackingId,
                             baseUrl);
                     }
 
                     // Inject unsubscribe link
-                    email.HtmlBody = await _trackingService.InjectUnsubscribeLinkAsync(
+                    email.HtmlBody = await this.trackingService.InjectUnsubscribeLinkAsync(
                         email.HtmlBody,
                         email.TrackingId,
                         baseUrl);
@@ -180,14 +180,14 @@ public class EmailService : IEmailService
             }
 
             // Save to database
-            var emailId = await _emailRepository.CreateAsync(email);
+            var emailId = await this.emailRepository.CreateAsync(email);
             email.Id = emailId;
 
             // Save attachments
             foreach (var attachment in email.Attachments)
             {
                 attachment.EmailId = emailId;
-                await _emailRepository.AddAttachmentAsync(attachment);
+                await this.emailRepository.AddAttachmentAsync(attachment);
             }
 
             // Send email immediately if requested
@@ -208,7 +208,7 @@ public class EmailService : IEmailService
                     email.ErrorMessage = "Failed to send email after retries";
                 }
 
-                await _emailRepository.UpdateAsync(email);
+                await this.emailRepository.UpdateAsync(email);
 
                 return new SendEmailResponse
                 {
@@ -229,7 +229,7 @@ public class EmailService : IEmailService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to process email request");
+            this.logger.LogError(ex, "Failed to process email request");
             return new SendEmailResponse
             {
                 Success = false,
@@ -240,29 +240,29 @@ public class EmailService : IEmailService
 
     public async Task<Email?> GetEmailByIdAsync(int id)
     {
-        return await _emailRepository.GetByIdAsync(id);
+        return await this.emailRepository.GetByIdAsync(id);
     }
 
     public async Task<Email?> GetEmailByTrackingIdAsync(Guid trackingId)
     {
-        return await _emailRepository.GetByTrackingIdAsync(trackingId);
+        return await this.emailRepository.GetByTrackingIdAsync(trackingId);
     }
 
     public async Task<List<Email>> GetAllEmailsAsync(int pageNumber = 1, int pageSize = 50)
     {
-        return await _emailRepository.GetAllAsync(pageNumber, pageSize);
+        return await this.emailRepository.GetAllAsync(pageNumber, pageSize);
     }
 
     private async Task<bool> SendEmailWithRetryAsync(Email email, EmailProviderType providerType, int maxRetries = 3)
     {
-        var provider = _emailProviders[providerType];
+        var provider = this.emailProviders[providerType];
 
         for (int retry = 0; retry < maxRetries; retry++)
         {
             try
             {
                 email.Status = EmailStatus.Processing;
-                await _emailRepository.UpdateAsync(email);
+                await this.emailRepository.UpdateAsync(email);
 
                 var success = await provider.SendAsync(email);
 
@@ -277,14 +277,14 @@ public class EmailService : IEmailService
                 if (retry < maxRetries - 1)
                 {
                     var delay = TimeSpan.FromSeconds(Math.Pow(2, retry));
-                    _logger.LogWarning("Retrying email send in {Delay} seconds. Retry {Retry}/{MaxRetries}",
+                    this.logger.LogWarning("Retrying email send in {Delay} seconds. Retry {Retry}/{MaxRetries}",
                         delay.TotalSeconds, retry + 1, maxRetries);
                     await Task.Delay(delay);
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error sending email on retry {Retry}", retry + 1);
+                this.logger.LogError(ex, "Error sending email on retry {Retry}", retry + 1);
                 email.RetryCount++;
                 email.ErrorMessage = ex.Message;
             }
@@ -295,7 +295,7 @@ public class EmailService : IEmailService
 
     private EmailProviderType GetDefaultEmailProvider()
     {
-        var defaultProvider = _configuration["EmailSettings:DefaultProvider"] ?? "Smtp";
+        var defaultProvider = this.configuration["EmailSettings:DefaultProvider"] ?? "Smtp";
         return Enum.Parse<EmailProviderType>(defaultProvider, ignoreCase: true);
     }
 }

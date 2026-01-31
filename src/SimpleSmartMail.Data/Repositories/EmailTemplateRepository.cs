@@ -25,7 +25,7 @@ public class EmailTemplateRepository : BaseRepository, IEmailTemplateRepository
             new SqlParameter("@CreatedBy", template.CreatedBy)
         };
 
-        var templateId = await ExecuteScalarAsync<int>("[emailCampaign].[sp_EmailTemplate_Create]", parameters);
+        var templateId = await ExecuteScalarAsync<int>("[emailCampaign].[EmailTemplate_Create]", parameters);
         return templateId;
     }
 
@@ -37,7 +37,7 @@ public class EmailTemplateRepository : BaseRepository, IEmailTemplateRepository
         };
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("[emailCampaign].[sp_EmailTemplate_GetById]", connection)
+        using var command = new SqlCommand("[emailCampaign].[EmailTemplate_GetById]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
@@ -64,7 +64,7 @@ public class EmailTemplateRepository : BaseRepository, IEmailTemplateRepository
         var templates = new List<EmailTemplate>();
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("[emailCampaign].[sp_EmailTemplate_GetAll]", connection)
+        using var command = new SqlCommand("[emailCampaign].[EmailTemplate_GetAll]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
@@ -95,7 +95,7 @@ public class EmailTemplateRepository : BaseRepository, IEmailTemplateRepository
             new SqlParameter("@UpdatedBy", template.UpdatedBy ?? string.Empty)
         };
 
-        await ExecuteNonQueryAsync("[emailCampaign].[sp_EmailTemplate_Update]", parameters);
+        await ExecuteNonQueryAsync("[emailCampaign].[EmailTemplate_Update]", parameters);
     }
 
     public async Task DeleteAsync(int id)
@@ -105,7 +105,7 @@ public class EmailTemplateRepository : BaseRepository, IEmailTemplateRepository
             new SqlParameter("@TemplateId", id)
         };
 
-        await ExecuteNonQueryAsync("[emailCampaign].[sp_EmailTemplate_Delete]", parameters);
+        await ExecuteNonQueryAsync("[emailCampaign].[EmailTemplate_Delete]", parameters);
     }
 
     private EmailTemplate MapTemplateFromReader(SqlDataReader reader)

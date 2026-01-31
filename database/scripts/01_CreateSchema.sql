@@ -270,5 +270,30 @@ BEGIN
 END
 GO
 
+-- =============================================
+-- Foreign Key Constraints to Reference Tables
+-- Note: These constraints are added after reference tables are created
+-- =============================================
+
+-- Add Foreign Key from Emails.Status to Ref_EmailStatuses (if not exists)
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE name = 'FK_Emails_Status')
+BEGIN
+    ALTER TABLE [emailCampaign].[Emails]
+    ADD CONSTRAINT FK_Emails_Status
+        FOREIGN KEY (Status) REFERENCES [emailCampaign].[Ref_EmailStatuses](StatusId);
+    PRINT 'Foreign key FK_Emails_Status added successfully.';
+END
+GO
+
+-- Add Foreign Key from EmailCampaigns.Status to Ref_CampaignStatuses (if not exists)
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE name = 'FK_EmailCampaigns_Status')
+BEGIN
+    ALTER TABLE [emailCampaign].[EmailCampaigns]
+    ADD CONSTRAINT FK_EmailCampaigns_Status
+        FOREIGN KEY (Status) REFERENCES [emailCampaign].[Ref_CampaignStatuses](StatusId);
+    PRINT 'Foreign key FK_EmailCampaigns_Status added successfully.';
+END
+GO
+
 PRINT 'Database schema created successfully!';
 GO

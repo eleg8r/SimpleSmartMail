@@ -37,7 +37,7 @@ public class EmailRepository : BaseRepository, IEmailRepository
             new SqlParameter("@IsValid", email.IsValid)
         };
 
-        var emailId = await ExecuteScalarAsync<int>("[emailCampaign].[sp_Email_Create]", parameters);
+        var emailId = await ExecuteScalarAsync<int>("[emailCampaign].[Email_Create]", parameters);
         return emailId;
     }
 
@@ -49,7 +49,7 @@ public class EmailRepository : BaseRepository, IEmailRepository
         };
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("[emailCampaign].[sp_Email_GetById]", connection)
+        using var command = new SqlCommand("[emailCampaign].[Email_GetById]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
@@ -74,7 +74,7 @@ public class EmailRepository : BaseRepository, IEmailRepository
         };
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("[emailCampaign].[sp_Email_GetByTrackingId]", connection)
+        using var command = new SqlCommand("[emailCampaign].[Email_GetByTrackingId]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
@@ -102,7 +102,7 @@ public class EmailRepository : BaseRepository, IEmailRepository
         var emails = new List<Email>();
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("[emailCampaign].[sp_Email_GetAll]", connection)
+        using var command = new SqlCommand("[emailCampaign].[Email_GetAll]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
@@ -139,7 +139,7 @@ public class EmailRepository : BaseRepository, IEmailRepository
             new SqlParameter("@IsValid", email.IsValid)
         };
 
-        await ExecuteNonQueryAsync("[emailCampaign].[sp_Email_Update]", parameters);
+        await ExecuteNonQueryAsync("[emailCampaign].[Email_Update]", parameters);
     }
 
     public async Task UpdateStatusAsync(int emailId, EmailStatus status)
@@ -150,7 +150,7 @@ public class EmailRepository : BaseRepository, IEmailRepository
             new SqlParameter("@Status", (int)status)
         };
 
-        await ExecuteNonQueryAsync("[emailCampaign].[sp_Email_UpdateStatus]", parameters);
+        await ExecuteNonQueryAsync("[emailCampaign].[Email_UpdateStatus]", parameters);
     }
 
     public async Task AddAttachmentAsync(EmailAttachment attachment)
@@ -164,7 +164,7 @@ public class EmailRepository : BaseRepository, IEmailRepository
             new SqlParameter("@Content", attachment.Content)
         };
 
-        await ExecuteNonQueryAsync("[emailCampaign].[sp_EmailAttachment_Create]", parameters);
+        await ExecuteNonQueryAsync("[emailCampaign].[EmailAttachment_Create]", parameters);
     }
 
     private Email MapEmailFromReader(SqlDataReader reader)

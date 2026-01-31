@@ -6,13 +6,13 @@ USE SimpleSmartMailDb;
 GO
 
 -- =============================================
--- sp_EmailTemplate_Create
+-- EmailTemplate_Create
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailTemplate_Create]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_EmailTemplate_Create];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[EmailTemplate_Create]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[EmailTemplate_Create];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_EmailTemplate_Create]
+CREATE PROCEDURE [emailCampaign].[EmailTemplate_Create]
     @Name NVARCHAR(255),
     @Description NVARCHAR(1000),
     @Subject NVARCHAR(500),
@@ -40,13 +40,13 @@ END
 GO
 
 -- =============================================
--- sp_EmailTemplate_GetById
+-- EmailTemplate_GetById
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailTemplate_GetById]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_EmailTemplate_GetById];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[EmailTemplate_GetById]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[EmailTemplate_GetById];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_EmailTemplate_GetById]
+CREATE PROCEDURE [emailCampaign].[EmailTemplate_GetById]
     @TemplateId INT
 AS
 BEGIN
@@ -62,14 +62,14 @@ END
 GO
 
 -- =============================================
--- sp_EmailTemplate_GetAll
+-- EmailTemplate_GetAll
 -- Get all templates with optional active filter
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailTemplate_GetAll]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_EmailTemplate_GetAll];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[EmailTemplate_GetAll]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[EmailTemplate_GetAll];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_EmailTemplate_GetAll]
+CREATE PROCEDURE [emailCampaign].[EmailTemplate_GetAll]
     @ActiveOnly BIT = 0
 AS
 BEGIN
@@ -86,13 +86,13 @@ END
 GO
 
 -- =============================================
--- sp_EmailTemplate_Update
+-- EmailTemplate_Update
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailTemplate_Update]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_EmailTemplate_Update];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[EmailTemplate_Update]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[EmailTemplate_Update];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_EmailTemplate_Update]
+CREATE PROCEDURE [emailCampaign].[EmailTemplate_Update]
     @TemplateId INT,
     @Name NVARCHAR(255),
     @Description NVARCHAR(1000),
@@ -120,13 +120,13 @@ END
 GO
 
 -- =============================================
--- sp_EmailTemplate_Delete
+-- EmailTemplate_Delete
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailTemplate_Delete]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_EmailTemplate_Delete];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[EmailTemplate_Delete]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[EmailTemplate_Delete];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_EmailTemplate_Delete]
+CREATE PROCEDURE [emailCampaign].[EmailTemplate_Delete]
     @TemplateId INT
 AS
 BEGIN

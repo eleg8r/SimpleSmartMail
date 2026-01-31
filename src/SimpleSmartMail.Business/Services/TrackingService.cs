@@ -8,32 +8,32 @@ namespace SimpleSmartMail.Business.Services;
 
 public class TrackingService : ITrackingService
 {
-    private readonly ITrackingRepository _trackingRepository;
-    private readonly IEmailRepository _emailRepository;
-    private readonly ILogger<TrackingService> _logger;
-    private static readonly Dictionary<string, string> _trackedUrls = new();
+    private readonly ITrackingRepository trackingRepository;
+    private readonly IEmailRepository emailRepository;
+    private readonly ILogger<TrackingService> logger;
+    private static readonly Dictionary<string, string> trackedUrls = new();
 
     public TrackingService(
         ITrackingRepository trackingRepository,
         IEmailRepository emailRepository,
         ILogger<TrackingService> logger)
     {
-        _trackingRepository = trackingRepository;
-        _emailRepository = emailRepository;
-        _logger = logger;
+        this.trackingRepository = trackingRepository;
+        this.emailRepository = emailRepository;
+        this.logger = logger;
     }
 
     public async Task<int> RecordOpenAsync(Guid trackingId, string? ipAddress, string? userAgent)
     {
         try
         {
-            var result = await _trackingRepository.RecordEmailOpenAsync(trackingId, ipAddress, userAgent);
-            _logger.LogInformation("Recorded email open for tracking ID {TrackingId}", trackingId);
+            var result = await this.trackingRepository.RecordEmailOpenAsync(trackingId, ipAddress, userAgent);
+            this.logger.LogInformation("Recorded email open for tracking ID {TrackingId}", trackingId);
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error recording email open for tracking ID {TrackingId}", trackingId);
+            this.logger.LogError(ex, "Error recording email open for tracking ID {TrackingId}", trackingId);
             return 0;
         }
     }
@@ -42,10 +42,10 @@ public class TrackingService : ITrackingService
     {
         try
         {
-            var email = await _emailRepository.GetByTrackingIdAsync(trackingId);
+            var email = await this.emailRepository.GetByTrackingIdAsync(trackingId);
             if (email == null)
             {
-                _logger.LogWarning("Email not found for tracking ID {TrackingId}", trackingId);
+                this.logger.LogWarning("Email not found for tracking ID {TrackingId}", trackingId);
                 return 0;
             }
 
@@ -62,14 +62,14 @@ public class TrackingService : ITrackingService
                 UserAgent = userAgent
             };
 
-            var clickId = await _trackingRepository.RecordEmailClickAsync(click);
+            var clickId = await this.trackingRepository.RecordEmailClickAsync(click);
 
-            _logger.LogInformation("Recorded click for tracking ID {TrackingId}, URL: {Url}", trackingId, url);
+            this.logger.LogInformation("Recorded click for tracking ID {TrackingId}, URL: {Url}", trackingId, url);
             return clickId;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error recording click for tracking ID {TrackingId}", trackingId);
+            this.logger.LogError(ex, "Error recording click for tracking ID {TrackingId}", trackingId);
             return 0;
         }
     }
@@ -114,9 +114,9 @@ public class TrackingService : ITrackingService
 
             // Store mapping for later retrieval
             var key = $"{trackingId}_{urlHash}";
-            if (!_trackedUrls.ContainsKey(key))
+            if (!this.trackedUrls.ContainsKey(key))
             {
-                _trackedUrls[key] = originalUrl;
+                this.trackedUrls[key] = originalUrl;
             }
 
             return $"<a href=\"{trackedUrl}\"{otherAttributes}>";
@@ -128,7 +128,7 @@ public class TrackingService : ITrackingService
     public Task<string?> GetOriginalUrlAsync(Guid trackingId, string urlHash)
     {
         var key = $"{trackingId}_{urlHash}";
-        return Task.FromResult(_trackedUrls.TryGetValue(key, out var url) ? url : null);
+        return Task.FromResult(this.trackedUrls.TryGetValue(key, out var url) ? url : null);
     }
 
     public Task<string> InjectUnsubscribeLinkAsync(string htmlBody, Guid trackingId, string baseUrl)
@@ -153,13 +153,13 @@ public class TrackingService : ITrackingService
 
     public async Task HandleBounceAsync(int emailId, string bounceReason)
     {
-        var email = await _emailRepository.GetByIdAsync(emailId);
+        var email = await this.emailRepository.GetByIdAsync(emailId);
         if (email == null) return;
 
         // Mark email as bounced
         email.Status = EmailStatus.Failed;
         email.ErrorMessage = $"Bounced: {bounceReason}";
-        await _emailRepository.UpdateAsync(email);
+        await this.emailRepository.UpdateAsync(email);
 
         // Auto-unsubscribe for hard bounces (global unsubscribe - ProgramId NULL)
         if (IsHardBounce(bounceReason))
@@ -173,14 +173,14 @@ public class TrackingService : ITrackingService
                 UnsubscribedAt = DateTime.UtcNow
             };
 
-            await _trackingRepository.AddUnsubscribeRequestAsync(unsubscribeRequest);
-            _logger.LogWarning("Auto-unsubscribed {EmailAddress} due to hard bounce", email.ToAddress);
+            await this.trackingRepository.AddUnsubscribeRequestAsync(unsubscribeRequest);
+            this.logger.LogWarning("Auto-unsubscribed {EmailAddress} due to hard bounce", email.ToAddress);
         }
     }
 
     public async Task HandleSpamComplaintAsync(int emailId)
     {
-        var email = await _emailRepository.GetByIdAsync(emailId);
+        var email = await this.emailRepository.GetByIdAsync(emailId);
         if (email == null) return;
 
         // Auto-unsubscribe for spam complaints (always global - ProgramId NULL)
@@ -193,8 +193,8 @@ public class TrackingService : ITrackingService
             UnsubscribedAt = DateTime.UtcNow
         };
 
-        await _trackingRepository.AddUnsubscribeRequestAsync(unsubscribeRequest);
-        _logger.LogWarning("Spam complaint received for email {EmailId} to {EmailAddress}", emailId, email.ToAddress);
+        await this.trackingRepository.AddUnsubscribeRequestAsync(unsubscribeRequest);
+        this.logger.LogWarning("Spam complaint received for email {EmailId} to {EmailAddress}", emailId, email.ToAddress);
     }
 
     private bool IsHardBounce(string bounceReason)
@@ -212,21 +212,21 @@ public class TrackingService : ITrackingService
     public async Task<int> AddUnsubscribeRequestAsync(UnsubscribeRequest request)
     {
         request.UnsubscribedAt = DateTime.UtcNow;
-        return await _trackingRepository.AddUnsubscribeRequestAsync(request);
+        return await this.trackingRepository.AddUnsubscribeRequestAsync(request);
     }
 
     public async Task<bool> IsUnsubscribedAsync(string emailAddress, int? programId)
     {
-        return await _trackingRepository.IsUnsubscribedAsync(emailAddress, programId);
+        return await this.trackingRepository.IsUnsubscribedAsync(emailAddress, programId);
     }
 
     public async Task<List<EmailClick>> GetClicksByEmailIdAsync(int emailId)
     {
-        return await _trackingRepository.GetClicksByEmailIdAsync(emailId);
+        return await this.trackingRepository.GetClicksByEmailIdAsync(emailId);
     }
 
     public async Task<List<EmailClick>> GetClicksByCampaignIdAsync(int campaignId)
     {
-        return await _trackingRepository.GetClicksByCampaignIdAsync(campaignId);
+        return await this.trackingRepository.GetClicksByCampaignIdAsync(campaignId);
     }
 }

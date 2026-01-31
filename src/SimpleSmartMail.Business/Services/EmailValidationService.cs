@@ -7,7 +7,7 @@ namespace SimpleSmartMail.Business.Services;
 
 public class EmailValidationService : IEmailValidationService
 {
-    private readonly ILogger<EmailValidationService> _logger;
+    private readonly ILogger<EmailValidationService> logger;
 
     // RFC 5322 compliant email regex (simplified)
     private static readonly Regex EmailRegex = new Regex(
@@ -16,7 +16,7 @@ public class EmailValidationService : IEmailValidationService
 
     public EmailValidationService(ILogger<EmailValidationService> logger)
     {
-        _logger = logger;
+        this.logger = logger;
     }
 
     public async Task<EmailValidationResult> ValidateEmailAsync(string emailAddress, bool checkDomain = false)
@@ -175,7 +175,7 @@ public class EmailValidationService : IEmailValidationService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Domain validation failed for {Email}", emailAddress);
+            this.logger.LogWarning(ex, "Domain validation failed for {Email}", emailAddress);
             return EmailValidationResult.Invalid(emailAddress, $"Domain validation failed: {ex.Message}");
         }
     }

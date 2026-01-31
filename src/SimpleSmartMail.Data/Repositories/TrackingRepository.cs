@@ -21,7 +21,7 @@ public class TrackingRepository : BaseRepository, ITrackingRepository
             new SqlParameter("@UserAgent", (object?)userAgent ?? DBNull.Value)
         };
 
-        var result = await ExecuteScalarAsync<int>("[emailCampaign].[sp_Tracking_RecordOpen]", parameters);
+        var result = await ExecuteScalarAsync<int>("[emailCampaign].[Tracking_RecordOpen]", parameters);
         return result;
     }
 
@@ -42,7 +42,7 @@ public class TrackingRepository : BaseRepository, ITrackingRepository
             new SqlParameter("@Device", (object?)click.Device ?? DBNull.Value)
         };
 
-        var clickId = await ExecuteScalarAsync<int>("[emailCampaign].[sp_Tracking_RecordClick]", parameters);
+        var clickId = await ExecuteScalarAsync<int>("[emailCampaign].[Tracking_RecordClick]", parameters);
         return clickId;
     }
 
@@ -56,7 +56,7 @@ public class TrackingRepository : BaseRepository, ITrackingRepository
         var clicks = new List<EmailClick>();
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("[emailCampaign].[sp_Tracking_GetClicksByEmailId]", connection)
+        using var command = new SqlCommand("[emailCampaign].[Tracking_GetClicksByEmailId]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
@@ -83,7 +83,7 @@ public class TrackingRepository : BaseRepository, ITrackingRepository
         var clicks = new List<EmailClick>();
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("[emailCampaign].[sp_Tracking_GetClicksByCampaignId]", connection)
+        using var command = new SqlCommand("[emailCampaign].[Tracking_GetClicksByCampaignId]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
@@ -114,7 +114,7 @@ public class TrackingRepository : BaseRepository, ITrackingRepository
             new SqlParameter("@UserAgent", (object?)request.UserAgent ?? DBNull.Value)
         };
 
-        var requestId = await ExecuteScalarAsync<int>("[emailCampaign].[sp_Unsubscribe_Create]", parameters);
+        var requestId = await ExecuteScalarAsync<int>("[emailCampaign].[Unsubscribe_Create]", parameters);
         return requestId;
     }
 
@@ -126,7 +126,7 @@ public class TrackingRepository : BaseRepository, ITrackingRepository
             new SqlParameter("@ProgramId", (object?)programId ?? DBNull.Value)
         };
 
-        var result = await ExecuteScalarAsync<int>("[emailCampaign].[sp_Unsubscribe_IsUnsubscribed]", parameters);
+        var result = await ExecuteScalarAsync<int>("[emailCampaign].[Unsubscribe_IsUnsubscribed]", parameters);
         return result > 0;
     }
 
@@ -140,7 +140,7 @@ public class TrackingRepository : BaseRepository, ITrackingRepository
         var requests = new List<UnsubscribeRequest>();
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("[emailCampaign].[sp_Unsubscribe_GetByProgramId]", connection)
+        using var command = new SqlCommand("[emailCampaign].[Unsubscribe_GetByProgramId]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };
@@ -168,7 +168,7 @@ public class TrackingRepository : BaseRepository, ITrackingRepository
         var requests = new List<UnsubscribeRequest>();
 
         using var connection = CreateConnection();
-        using var command = new SqlCommand("[emailCampaign].[sp_Unsubscribe_GetAll]", connection)
+        using var command = new SqlCommand("[emailCampaign].[Unsubscribe_GetAll]", connection)
         {
             CommandType = CommandType.StoredProcedure
         };

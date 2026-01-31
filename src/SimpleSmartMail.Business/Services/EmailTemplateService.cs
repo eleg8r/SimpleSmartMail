@@ -6,11 +6,11 @@ namespace SimpleSmartMail.Business.Services;
 
 public class EmailTemplateService : IEmailTemplateService
 {
-    private readonly IEmailTemplateRepository _templateRepository;
+    private readonly IEmailTemplateRepository templateRepository;
 
     public EmailTemplateService(IEmailTemplateRepository templateRepository)
     {
-        _templateRepository = templateRepository;
+        this.templateRepository = templateRepository;
     }
 
     public async Task<int> CreateTemplateAsync(CreateTemplateRequest request)
@@ -27,27 +27,27 @@ public class EmailTemplateService : IEmailTemplateService
             CreatedBy = request.CreatedBy
         };
 
-        return await _templateRepository.CreateAsync(template);
+        return await this.templateRepository.CreateAsync(template);
     }
 
     public async Task<EmailTemplate?> GetTemplateByIdAsync(int id)
     {
-        return await _templateRepository.GetByIdAsync(id);
+        return await this.templateRepository.GetByIdAsync(id);
     }
 
     public async Task<List<EmailTemplate>> GetAllTemplatesAsync(bool activeOnly = false)
     {
-        return await _templateRepository.GetAllAsync(activeOnly);
+        return await this.templateRepository.GetAllAsync(activeOnly);
     }
 
     public async Task UpdateTemplateAsync(EmailTemplate template)
     {
         template.UpdatedAt = DateTime.UtcNow;
-        await _templateRepository.UpdateAsync(template);
+        await this.templateRepository.UpdateAsync(template);
     }
 
     public async Task DeleteTemplateAsync(int id)
     {
-        await _templateRepository.DeleteAsync(id);
+        await this.templateRepository.DeleteAsync(id);
     }
 }

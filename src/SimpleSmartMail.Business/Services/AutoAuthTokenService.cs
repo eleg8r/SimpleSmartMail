@@ -12,11 +12,11 @@ namespace SimpleSmartMail.Business.Services;
 /// </summary>
 public class AutoAuthTokenService : IAutoAuthTokenService
 {
-    private readonly IConfiguration _configuration;
+    private readonly IConfiguration configuration;
 
     public AutoAuthTokenService(IConfiguration configuration)
     {
-        _configuration = configuration;
+        this.configuration = configuration;
     }
 
     public string GenerateAutoLoginToken(
@@ -26,7 +26,7 @@ public class AutoAuthTokenService : IAutoAuthTokenService
         Dictionary<string, string>? additionalClaims = null)
     {
         // Validate configuration
-        var secretKey = _configuration["AutoAuth:SecretKey"];
+        var secretKey = this.configuration["AutoAuth:SecretKey"];
         if (string.IsNullOrEmpty(secretKey))
         {
             throw new InvalidOperationException(
@@ -39,9 +39,9 @@ public class AutoAuthTokenService : IAutoAuthTokenService
                 "AutoAuth:SecretKey must be at least 32 characters long for security");
         }
 
-        var issuer = _configuration["AutoAuth:Issuer"] ?? "SimpleSmartMail";
-        var audience = _configuration["AutoAuth:Audience"] ?? "leo.tutor.com";
-        var expiryMinutes = _configuration.GetValue<int>("AutoAuth:ExpiryMinutes", 60);
+        var issuer = this.configuration["AutoAuth:Issuer"] ?? "SimpleSmartMail";
+        var audience = this.configuration["AutoAuth:Audience"] ?? "leo.tutor.com";
+        var expiryMinutes = this.configuration.GetValue<int>("AutoAuth:ExpiryMinutes", 60);
 
         // Create security key
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));

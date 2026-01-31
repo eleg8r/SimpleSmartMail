@@ -6,13 +6,13 @@ USE SimpleSmartMailDb;
 GO
 
 -- =============================================
--- sp_Tracking_RecordOpen
+-- Tracking_RecordOpen
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Tracking_RecordOpen]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Tracking_RecordOpen];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Tracking_RecordOpen]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Tracking_RecordOpen];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Tracking_RecordOpen]
+CREATE PROCEDURE [emailCampaign].[Tracking_RecordOpen]
     @TrackingId UNIQUEIDENTIFIER,
     @IpAddress NVARCHAR(50) = NULL,
     @UserAgent NVARCHAR(MAX) = NULL
@@ -26,7 +26,7 @@ BEGIN
         OpenTracked = 1,
         OpenedAt = CASE WHEN OpenedAt IS NULL THEN GETUTCDATE() ELSE OpenedAt END,
         OpenCount = OpenCount + 1,
-        Status = CASE WHEN Status < 4 THEN 4 ELSE Status END, -- 4 = Opened
+        Status = CASE WHEN Status < 5 THEN 5 ELSE Status END, -- 5 = Opened
         UpdatedAt = GETUTCDATE()
     WHERE TrackingId = @TrackingId;
 
@@ -35,13 +35,13 @@ END
 GO
 
 -- =============================================
--- sp_Tracking_RecordClick
+-- Tracking_RecordClick
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Tracking_RecordClick]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Tracking_RecordClick];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Tracking_RecordClick]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Tracking_RecordClick];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Tracking_RecordClick]
+CREATE PROCEDURE [emailCampaign].[Tracking_RecordClick]
     @EmailId INT,
     @CampaignId INT = NULL,
     @TrackingId UNIQUEIDENTIFIER,
@@ -76,7 +76,7 @@ BEGIN
         ClickTracked = 1,
         FirstClickedAt = CASE WHEN FirstClickedAt IS NULL THEN GETUTCDATE() ELSE FirstClickedAt END,
         ClickCount = ClickCount + 1,
-        Status = CASE WHEN Status < 5 THEN 5 ELSE Status END, -- 5 = Clicked
+        Status = CASE WHEN Status < 6 THEN 6 ELSE Status END, -- 6 = Clicked
         UpdatedAt = GETUTCDATE()
     WHERE Id = @EmailId;
 
@@ -85,13 +85,13 @@ END
 GO
 
 -- =============================================
--- sp_Tracking_GetClicksByEmailId
+-- Tracking_GetClicksByEmailId
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Tracking_GetClicksByEmailId]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Tracking_GetClicksByEmailId];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Tracking_GetClicksByEmailId]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Tracking_GetClicksByEmailId];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Tracking_GetClicksByEmailId]
+CREATE PROCEDURE [emailCampaign].[Tracking_GetClicksByEmailId]
     @EmailId INT
 AS
 BEGIN
@@ -109,13 +109,13 @@ END
 GO
 
 -- =============================================
--- sp_Tracking_GetClicksByCampaignId
+-- Tracking_GetClicksByCampaignId
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Tracking_GetClicksByCampaignId]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Tracking_GetClicksByCampaignId];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Tracking_GetClicksByCampaignId]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Tracking_GetClicksByCampaignId];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Tracking_GetClicksByCampaignId]
+CREATE PROCEDURE [emailCampaign].[Tracking_GetClicksByCampaignId]
     @CampaignId INT
 AS
 BEGIN
@@ -136,12 +136,12 @@ GO
 -- Unsubscribe Procedures
 -- =============================================
 
--- sp_Unsubscribe_Create
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Unsubscribe_Create]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Unsubscribe_Create];
+-- Unsubscribe_Create
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Unsubscribe_Create]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Unsubscribe_Create];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Unsubscribe_Create]
+CREATE PROCEDURE [emailCampaign].[Unsubscribe_Create]
     @EmailAddress NVARCHAR(255),
     @ProgramId INT = NULL, -- NULL = global unsubscribe
     @CampaignId INT = NULL,
@@ -167,12 +167,12 @@ BEGIN
 END
 GO
 
--- sp_Unsubscribe_IsUnsubscribed
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Unsubscribe_IsUnsubscribed]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Unsubscribe_IsUnsubscribed];
+-- Unsubscribe_IsUnsubscribed
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Unsubscribe_IsUnsubscribed]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Unsubscribe_IsUnsubscribed];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Unsubscribe_IsUnsubscribed]
+CREATE PROCEDURE [emailCampaign].[Unsubscribe_IsUnsubscribed]
     @EmailAddress NVARCHAR(255),
     @ProgramId INT = NULL
 AS
@@ -192,12 +192,12 @@ BEGIN
 END
 GO
 
--- sp_Unsubscribe_GetByProgramId
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Unsubscribe_GetByProgramId]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Unsubscribe_GetByProgramId];
+-- Unsubscribe_GetByProgramId
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Unsubscribe_GetByProgramId]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Unsubscribe_GetByProgramId];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Unsubscribe_GetByProgramId]
+CREATE PROCEDURE [emailCampaign].[Unsubscribe_GetByProgramId]
     @ProgramId INT = NULL -- NULL = get global unsubscribes
 AS
 BEGIN
@@ -213,12 +213,12 @@ BEGIN
 END
 GO
 
--- sp_Unsubscribe_GetAll
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Unsubscribe_GetAll]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Unsubscribe_GetAll];
+-- Unsubscribe_GetAll
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Unsubscribe_GetAll]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Unsubscribe_GetAll];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Unsubscribe_GetAll]
+CREATE PROCEDURE [emailCampaign].[Unsubscribe_GetAll]
     @PageNumber INT = 1,
     @PageSize INT = 50
 AS

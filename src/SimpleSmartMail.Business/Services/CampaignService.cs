@@ -10,13 +10,13 @@ namespace SimpleSmartMail.Business.Services;
 
 public class CampaignService : ICampaignService
 {
-    private readonly ICampaignRepository _campaignRepository;
-    private readonly IEmailService _emailService;
-    private readonly ITrackingService _trackingService;
-    private readonly IAutoAuthTokenService _autoAuthTokenService;
-    private readonly IEmailValidationService _emailValidationService;
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<CampaignService> _logger;
+    private readonly ICampaignRepository campaignRepository;
+    private readonly IEmailService emailService;
+    private readonly ITrackingService trackingService;
+    private readonly IAutoAuthTokenService autoAuthTokenService;
+    private readonly IEmailValidationService emailValidationService;
+    private readonly IConfiguration configuration;
+    private readonly ILogger<CampaignService> logger;
 
     public CampaignService(
         ICampaignRepository campaignRepository,
@@ -27,13 +27,13 @@ public class CampaignService : ICampaignService
         IConfiguration configuration,
         ILogger<CampaignService> logger)
     {
-        _campaignRepository = campaignRepository;
-        _emailService = emailService;
-        _trackingService = trackingService;
-        _autoAuthTokenService = autoAuthTokenService;
-        _emailValidationService = emailValidationService;
-        _configuration = configuration;
-        _logger = logger;
+        this.campaignRepository = campaignRepository;
+        this.emailService = emailService;
+        this.trackingService = trackingService;
+        this.autoAuthTokenService = autoAuthTokenService;
+        this.emailValidationService = emailValidationService;
+        this.configuration = configuration;
+        this.logger = logger;
     }
 
     public async Task<int> CreateCampaignAsync(CreateCampaignRequest request)
@@ -58,12 +58,12 @@ public class CampaignService : ICampaignService
             CreatedBy = request.CreatedBy
         };
 
-        var campaignId = await _campaignRepository.CreateAsync(campaign);
+        var campaignId = await this.campaignRepository.CreateAsync(campaign);
 
         // Add program mappings
         foreach (var programId in request.ProgramIds)
         {
-            await _campaignRepository.AddProgramAsync(campaignId, programId, request.CreatedBy);
+            await this.campaignRepository.AddProgramAsync(campaignId, programId, request.CreatedBy);
         }
 
         // Auto-generate authentication tokens if enabled
@@ -82,7 +82,7 @@ public class CampaignService : ICampaignService
                         recipientDto.PersonalizationData ??= new Dictionary<string, string>();
 
                         // Generate auto-login URL with JWT token
-                        var autoAuthUrl = _autoAuthTokenService.GenerateTutorConnectUrl(
+                        var autoAuthUrl = this.autoAuthTokenService.GenerateTutorConnectUrl(
                             userId: recipientDto.UserId,
                             email: recipientDto.EmailAddress,
                             baseUrl: request.AutoAuthBaseUrl
@@ -91,14 +91,14 @@ public class CampaignService : ICampaignService
                         // Add to personalization data
                         recipientDto.PersonalizationData[tokenKey] = autoAuthUrl;
 
-                        _logger.LogInformation(
+                        this.logger.LogInformation(
                             "Generated auto-auth token for recipient {Email} with UserId {UserId}",
                             recipientDto.EmailAddress,
                             recipientDto.UserId);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex,
+                        this.logger.LogError(ex,
                             "Failed to generate auto-auth token for recipient {Email}",
                             recipientDto.EmailAddress);
                         // Continue processing other recipients
@@ -120,10 +120,10 @@ public class CampaignService : ICampaignService
                     : null
             };
 
-            await _campaignRepository.AddRecipientAsync(recipient);
+            await this.campaignRepository.AddRecipientAsync(recipient);
         }
 
-        _logger.LogInformation("Campaign created with ID {CampaignId} and {RecipientCount} recipients",
+        this.logger.LogInformation("Campaign created with ID {CampaignId} and {RecipientCount} recipients",
             campaignId, request.Recipients.Count);
 
         return campaignId;
@@ -131,17 +131,17 @@ public class CampaignService : ICampaignService
 
     public async Task<EmailCampaign?> GetCampaignByIdAsync(int id)
     {
-        return await _campaignRepository.GetByIdAsync(id);
+        return await this.campaignRepository.GetByIdAsync(id);
     }
 
     public async Task<List<EmailCampaign>> GetAllCampaignsAsync(int pageNumber = 1, int pageSize = 50)
     {
-        return await _campaignRepository.GetAllAsync(pageNumber, pageSize);
+        return await this.campaignRepository.GetAllAsync(pageNumber, pageSize);
     }
 
     public async Task UpdateCampaignStatusAsync(int campaignId, CampaignStatus status)
     {
-        var campaign = await _campaignRepository.GetByIdAsync(campaignId);
+        var campaign = await this.campaignRepository.GetByIdAsync(campaignId);
         if (campaign == null)
         {
             throw new ArgumentException($"Campaign with ID {campaignId} not found");
@@ -158,12 +158,12 @@ public class CampaignService : ICampaignService
             campaign.CompletedAt = DateTime.UtcNow;
         }
 
-        await _campaignRepository.UpdateAsync(campaign);
+        await this.campaignRepository.UpdateAsync(campaign);
     }
 
     public async Task StartCampaignAsync(int campaignId)
     {
-        var campaign = await _campaignRepository.GetByIdAsync(campaignId);
+        var campaign = await this.campaignRepository.GetByIdAsync(campaignId);
         if (campaign == null)
         {
             throw new ArgumentException($"Campaign with ID {campaignId} not found");
@@ -176,22 +176,22 @@ public class CampaignService : ICampaignService
 
         campaign.Status = CampaignStatus.InProgress;
         campaign.StartedAt = DateTime.UtcNow;
-        await _campaignRepository.UpdateAsync(campaign);
+        await this.campaignRepository.UpdateAsync(campaign);
 
         // Start sending emails in background (simplified - in production use a job queue)
         _ = Task.Run(async () => await ProcessCampaignAsync(campaign));
 
-        _logger.LogInformation("Campaign {CampaignId} started", campaignId);
+        this.logger.LogInformation("Campaign {CampaignId} started", campaignId);
     }
 
     private async Task ProcessCampaignAsync(EmailCampaign campaign)
     {
         try
         {
-            var recipients = await _campaignRepository.GetRecipientsAsync(campaign.Id);
+            var recipients = await this.campaignRepository.GetRecipientsAsync(campaign.Id);
             var unsentRecipients = recipients.Where(r => !r.Sent).ToList();
 
-            _logger.LogInformation("Processing campaign {CampaignId} with {RecipientCount} unsent recipients",
+            this.logger.LogInformation("Processing campaign {CampaignId} with {RecipientCount} unsent recipients",
                 campaign.Id, unsentRecipients.Count);
 
             int emailsSent = 0;
@@ -202,26 +202,26 @@ public class CampaignService : ICampaignService
                 try
                 {
                     // Validate recipient email address
-                    var validation = await _emailValidationService.ValidateEmailAsync(recipient.EmailAddress);
+                    var validation = await this.emailValidationService.ValidateEmailAsync(recipient.EmailAddress);
                     if (!validation.IsValid)
                     {
-                        _logger.LogWarning("Invalid email address for recipient {Email}: {Errors}",
+                        this.logger.LogWarning("Invalid email address for recipient {Email}: {Errors}",
                             recipient.EmailAddress,
                             string.Join(", ", validation.Errors));
 
                         recipient.Sent = false;
-                        await _campaignRepository.UpdateRecipientAsync(recipient);
+                        await this.campaignRepository.UpdateRecipientAsync(recipient);
                         emailsFailed++;
                         continue;
                     }
 
                     // Check if recipient is unsubscribed from any of the campaign's programs
-                    var campaignPrograms = await _campaignRepository.GetProgramsByCampaignIdAsync(campaign.Id);
+                    var campaignPrograms = await this.campaignRepository.GetProgramsByCampaignIdAsync(campaign.Id);
                     bool isUnsubscribed = false;
 
                     foreach (var program in campaignPrograms)
                     {
-                        if (await _trackingService.IsUnsubscribedAsync(recipient.EmailAddress, program.ProgramId))
+                        if (await this.trackingService.IsUnsubscribedAsync(recipient.EmailAddress, program.ProgramId))
                         {
                             isUnsubscribed = true;
                             break;
@@ -229,18 +229,18 @@ public class CampaignService : ICampaignService
                     }
 
                     // Also check global unsubscribe (ProgramId = NULL)
-                    if (!isUnsubscribed && await _trackingService.IsUnsubscribedAsync(recipient.EmailAddress, null))
+                    if (!isUnsubscribed && await this.trackingService.IsUnsubscribedAsync(recipient.EmailAddress, null))
                     {
                         isUnsubscribed = true;
                     }
 
                     if (isUnsubscribed)
                     {
-                        _logger.LogInformation("Skipping unsubscribed recipient {EmailAddress} for campaign {CampaignId}",
+                        this.logger.LogInformation("Skipping unsubscribed recipient {EmailAddress} for campaign {CampaignId}",
                             recipient.EmailAddress, campaign.Id);
 
                         recipient.Sent = false;
-                        await _campaignRepository.UpdateRecipientAsync(recipient);
+                        await this.campaignRepository.UpdateRecipientAsync(recipient);
                         emailsFailed++;
                         continue;
                     }
@@ -280,7 +280,7 @@ public class CampaignService : ICampaignService
                         EnableClickTracking = campaign.EnableClickTracking
                     };
 
-                    var result = await _emailService.SendEmailAsync(emailRequest);
+                    var result = await this.emailService.SendEmailAsync(emailRequest);
 
                     if (result.Success)
                     {
@@ -294,7 +294,7 @@ public class CampaignService : ICampaignService
                         emailsFailed++;
                     }
 
-                    await _campaignRepository.UpdateRecipientAsync(recipient);
+                    await this.campaignRepository.UpdateRecipientAsync(recipient);
 
                     // Rate limiting
                     if (campaign.MaxEmailsPerHour.HasValue)
@@ -305,50 +305,50 @@ public class CampaignService : ICampaignService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to send email to {EmailAddress} for campaign {CampaignId}",
+                    this.logger.LogError(ex, "Failed to send email to {EmailAddress} for campaign {CampaignId}",
                         recipient.EmailAddress, campaign.Id);
                     emailsFailed++;
                 }
             }
 
             // Update campaign statistics
-            await _campaignRepository.UpdateStatisticsAsync(campaign.Id, emailsSent, 0, 0, 0, emailsFailed);
+            await this.campaignRepository.UpdateStatisticsAsync(campaign.Id, emailsSent, 0, 0, 0, emailsFailed);
 
             // Mark campaign as completed
             campaign.Status = CampaignStatus.Completed;
             campaign.CompletedAt = DateTime.UtcNow;
-            await _campaignRepository.UpdateAsync(campaign);
+            await this.campaignRepository.UpdateAsync(campaign);
 
-            _logger.LogInformation("Campaign {CampaignId} completed. Sent: {Sent}, Failed: {Failed}",
+            this.logger.LogInformation("Campaign {CampaignId} completed. Sent: {Sent}, Failed: {Failed}",
                 campaign.Id, emailsSent, emailsFailed);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to process campaign {CampaignId}", campaign.Id);
+            this.logger.LogError(ex, "Failed to process campaign {CampaignId}", campaign.Id);
             campaign.Status = CampaignStatus.Failed;
-            await _campaignRepository.UpdateAsync(campaign);
+            await this.campaignRepository.UpdateAsync(campaign);
         }
     }
 
     public async Task AddProgramToCampaignAsync(int campaignId, int programId, string createdBy)
     {
-        await _campaignRepository.AddProgramAsync(campaignId, programId, createdBy);
-        _logger.LogInformation("Added program {ProgramId} to campaign {CampaignId}", programId, campaignId);
+        await this.campaignRepository.AddProgramAsync(campaignId, programId, createdBy);
+        this.logger.LogInformation("Added program {ProgramId} to campaign {CampaignId}", programId, campaignId);
     }
 
     public async Task RemoveProgramFromCampaignAsync(int campaignId, int programId)
     {
-        await _campaignRepository.RemoveProgramAsync(campaignId, programId);
-        _logger.LogInformation("Removed program {ProgramId} from campaign {CampaignId}", programId, campaignId);
+        await this.campaignRepository.RemoveProgramAsync(campaignId, programId);
+        this.logger.LogInformation("Removed program {ProgramId} from campaign {CampaignId}", programId, campaignId);
     }
 
     public async Task<List<EmailCampaignProgram>> GetCampaignProgramsAsync(int campaignId)
     {
-        return await _campaignRepository.GetProgramsByCampaignIdAsync(campaignId);
+        return await this.campaignRepository.GetProgramsByCampaignIdAsync(campaignId);
     }
 
     public async Task<List<EmailCampaign>> GetCampaignsByProgramIdAsync(int programId)
     {
-        return await _campaignRepository.GetCampaignsByProgramIdAsync(programId);
+        return await this.campaignRepository.GetCampaignsByProgramIdAsync(programId);
     }
 }

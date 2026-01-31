@@ -6,13 +6,13 @@ USE SimpleSmartMailDb;
 GO
 
 -- =============================================
--- sp_Campaign_Create
+-- Campaign_Create
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Campaign_Create]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Campaign_Create];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Campaign_Create]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Campaign_Create];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Campaign_Create]
+CREATE PROCEDURE [emailCampaign].[Campaign_Create]
     @Name NVARCHAR(255),
     @Description NVARCHAR(1000),
     @Status INT,
@@ -52,13 +52,13 @@ END
 GO
 
 -- =============================================
--- sp_Campaign_GetById
+-- Campaign_GetById
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Campaign_GetById]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Campaign_GetById];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Campaign_GetById]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Campaign_GetById];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Campaign_GetById]
+CREATE PROCEDURE [emailCampaign].[Campaign_GetById]
     @CampaignId INT
 AS
 BEGIN
@@ -79,14 +79,14 @@ END
 GO
 
 -- =============================================
--- sp_Campaign_GetAll
+-- Campaign_GetAll
 -- Get all campaigns with pagination
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Campaign_GetAll]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Campaign_GetAll];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Campaign_GetAll]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Campaign_GetAll];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Campaign_GetAll]
+CREATE PROCEDURE [emailCampaign].[Campaign_GetAll]
     @PageNumber INT = 1,
     @PageSize INT = 50
 AS
@@ -112,13 +112,13 @@ END
 GO
 
 -- =============================================
--- sp_Campaign_Update
+-- Campaign_Update
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Campaign_Update]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Campaign_Update];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Campaign_Update]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Campaign_Update];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Campaign_Update]
+CREATE PROCEDURE [emailCampaign].[Campaign_Update]
     @CampaignId INT,
     @Name NVARCHAR(255),
     @Description NVARCHAR(1000),
@@ -146,13 +146,13 @@ END
 GO
 
 -- =============================================
--- sp_Campaign_UpdateStatistics
+-- Campaign_UpdateStatistics
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_Campaign_UpdateStatistics]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_Campaign_UpdateStatistics];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[Campaign_UpdateStatistics]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[Campaign_UpdateStatistics];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_Campaign_UpdateStatistics]
+CREATE PROCEDURE [emailCampaign].[Campaign_UpdateStatistics]
     @CampaignId INT,
     @EmailsSent INT,
     @EmailsDelivered INT,
@@ -176,13 +176,13 @@ END
 GO
 
 -- =============================================
--- sp_CampaignRecipient_Create
+-- CampaignRecipient_Create
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_CampaignRecipient_Create]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_CampaignRecipient_Create];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[CampaignRecipient_Create]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[CampaignRecipient_Create];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_CampaignRecipient_Create]
+CREATE PROCEDURE [emailCampaign].[CampaignRecipient_Create]
     @CampaignId INT,
     @EmailAddress NVARCHAR(255),
     @RecipientName NVARCHAR(255) = NULL,
@@ -199,13 +199,13 @@ END
 GO
 
 -- =============================================
--- sp_CampaignRecipient_GetByCampaignId
+-- CampaignRecipient_GetByCampaignId
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_CampaignRecipient_GetByCampaignId]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_CampaignRecipient_GetByCampaignId];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[CampaignRecipient_GetByCampaignId]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[CampaignRecipient_GetByCampaignId];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_CampaignRecipient_GetByCampaignId]
+CREATE PROCEDURE [emailCampaign].[CampaignRecipient_GetByCampaignId]
     @CampaignId INT
 AS
 BEGIN
@@ -221,13 +221,13 @@ END
 GO
 
 -- =============================================
--- sp_CampaignRecipient_Update
+-- CampaignRecipient_Update
 -- =============================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_CampaignRecipient_Update]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_CampaignRecipient_Update];
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[CampaignRecipient_Update]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[CampaignRecipient_Update];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_CampaignRecipient_Update]
+CREATE PROCEDURE [emailCampaign].[CampaignRecipient_Update]
     @RecipientId INT,
     @EmailId INT = NULL,
     @Sent BIT,
@@ -249,12 +249,12 @@ GO
 -- EmailCampaignPrograms Procedures
 -- =============================================
 
--- sp_EmailCampaignPrograms_AddProgram
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailCampaignPrograms_AddProgram]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_EmailCampaignPrograms_AddProgram];
+-- EmailCampaignPrograms_AddProgram
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[EmailCampaignPrograms_AddProgram]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[EmailCampaignPrograms_AddProgram];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_EmailCampaignPrograms_AddProgram]
+CREATE PROCEDURE [emailCampaign].[EmailCampaignPrograms_AddProgram]
     @EmailCampaignId INT,
     @ProgramId INT,
     @CreatedBy NVARCHAR(255)
@@ -280,12 +280,12 @@ BEGIN
 END
 GO
 
--- sp_EmailCampaignPrograms_RemoveProgram
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailCampaignPrograms_RemoveProgram]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_EmailCampaignPrograms_RemoveProgram];
+-- EmailCampaignPrograms_RemoveProgram
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[EmailCampaignPrograms_RemoveProgram]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[EmailCampaignPrograms_RemoveProgram];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_EmailCampaignPrograms_RemoveProgram]
+CREATE PROCEDURE [emailCampaign].[EmailCampaignPrograms_RemoveProgram]
     @EmailCampaignId INT,
     @ProgramId INT
 AS
@@ -299,12 +299,12 @@ BEGIN
 END
 GO
 
--- sp_EmailCampaignPrograms_GetByCampaignId
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailCampaignPrograms_GetByCampaignId]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_EmailCampaignPrograms_GetByCampaignId];
+-- EmailCampaignPrograms_GetByCampaignId
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[EmailCampaignPrograms_GetByCampaignId]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[EmailCampaignPrograms_GetByCampaignId];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_EmailCampaignPrograms_GetByCampaignId]
+CREATE PROCEDURE [emailCampaign].[EmailCampaignPrograms_GetByCampaignId]
     @EmailCampaignId INT
 AS
 BEGIN
@@ -318,12 +318,12 @@ BEGIN
 END
 GO
 
--- sp_EmailCampaignPrograms_GetByProgramId
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[sp_EmailCampaignPrograms_GetByProgramId]') AND type in (N'P'))
-    DROP PROCEDURE [emailCampaign].[sp_EmailCampaignPrograms_GetByProgramId];
+-- EmailCampaignPrograms_GetByProgramId
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[emailCampaign].[EmailCampaignPrograms_GetByProgramId]') AND type in (N'P'))
+    DROP PROCEDURE [emailCampaign].[EmailCampaignPrograms_GetByProgramId];
 GO
 
-CREATE PROCEDURE [emailCampaign].[sp_EmailCampaignPrograms_GetByProgramId]
+CREATE PROCEDURE [emailCampaign].[EmailCampaignPrograms_GetByProgramId]
     @ProgramId INT
 AS
 BEGIN
