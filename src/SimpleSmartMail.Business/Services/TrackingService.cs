@@ -11,7 +11,6 @@ public class TrackingService : ITrackingService
     private readonly ITrackingRepository trackingRepository;
     private readonly IEmailRepository emailRepository;
     private readonly ILogger<TrackingService> logger;
-    private static readonly Dictionary<string, string> trackedUrls = new();
 
     public TrackingService(
         ITrackingRepository trackingRepository,
@@ -108,27 +107,14 @@ public class TrackingService : ITrackingService
                 return match.Value;
             }
 
-            // Create tracked URL
-            var urlHash = Math.Abs(originalUrl.GetHashCode()).ToString();
-            var trackedUrl = $"{baseUrl}/track/click/{trackingId}/{urlHash}";
-
-            // Store mapping for later retrieval
-            var key = $"{trackingId}_{urlHash}";
-            if (!this.trackedUrls.ContainsKey(key))
-            {
-                this.trackedUrls[key] = originalUrl;
-            }
+            // Create tracked URL with original URL as query parameter
+            var encodedUrl = Uri.EscapeDataString(originalUrl);
+            var trackedUrl = $"{baseUrl}/track/click/{trackingId}?url={encodedUrl}";
 
             return $"<a href=\"{trackedUrl}\"{otherAttributes}>";
         }, RegexOptions.IgnoreCase);
 
         return Task.FromResult(htmlBody);
-    }
-
-    public Task<string?> GetOriginalUrlAsync(Guid trackingId, string urlHash)
-    {
-        var key = $"{trackingId}_{urlHash}";
-        return Task.FromResult(this.trackedUrls.TryGetValue(key, out var url) ? url : null);
     }
 
     public Task<string> InjectUnsubscribeLinkAsync(string htmlBody, Guid trackingId, string baseUrl)

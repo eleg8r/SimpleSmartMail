@@ -46,25 +46,23 @@ public class TrackingController : ControllerBase
     /// <summary>
     /// Track link click and redirect to original URL
     /// </summary>
-    [HttpGet("click/{trackingId}/{urlHash}")]
-    public async Task<IActionResult> TrackClick(Guid trackingId, string urlHash)
+    [HttpGet("click/{trackingId}")]
+    public async Task<IActionResult> TrackClick(Guid trackingId, [FromQuery] string url)
     {
         try
         {
-            var originalUrl = await _trackingService.GetOriginalUrlAsync(trackingId, urlHash);
-
-            if (string.IsNullOrEmpty(originalUrl))
+            if (string.IsNullOrEmpty(url))
             {
-                _logger.LogWarning("Original URL not found for tracking ID {TrackingId}, hash {UrlHash}", trackingId, urlHash);
+                _logger.LogWarning("Original URL not provided for tracking ID {TrackingId}", trackingId);
                 return NotFound("Link not found");
             }
 
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
             var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
 
-            await _trackingService.RecordClickAsync(trackingId, originalUrl, ipAddress, userAgent);
+            await _trackingService.RecordClickAsync(trackingId, url, ipAddress, userAgent);
 
-            return Redirect(originalUrl);
+            return Redirect(url);
         }
         catch (Exception ex)
         {
