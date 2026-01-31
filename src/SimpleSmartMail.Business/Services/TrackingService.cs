@@ -215,4 +215,29 @@ public class TrackingService : ITrackingService
     {
         return await this.trackingRepository.GetClicksByCampaignIdAsync(campaignId);
     }
+
+    public async Task<bool> RecordSurveyResponseAsync(Guid trackingId, string questionId, string answerId, string? answerText, string? ipAddress, string? userAgent)
+    {
+        try
+        {
+            var responseId = await this.trackingRepository.RecordSurveyResponseAsync(trackingId, questionId, answerId, answerText, ipAddress, userAgent);
+            this.logger.LogInformation("Recorded survey response for tracking ID {TrackingId}, Question: {QuestionId}, Answer: {AnswerId}", trackingId, questionId, answerId);
+            return responseId > 0;
+        }
+        catch (Exception ex)
+        {
+            this.logger.LogError(ex, "Error recording survey response for tracking ID {TrackingId}", trackingId);
+            return false;
+        }
+    }
+
+    public async Task<List<SurveyResponse>> GetSurveyResponsesByEmailIdAsync(int emailId)
+    {
+        return await this.trackingRepository.GetSurveyResponsesByEmailIdAsync(emailId);
+    }
+
+    public async Task<List<SurveyResponse>> GetSurveyResponsesByCampaignIdAsync(int campaignId)
+    {
+        return await this.trackingRepository.GetSurveyResponsesByCampaignIdAsync(campaignId);
+    }
 }

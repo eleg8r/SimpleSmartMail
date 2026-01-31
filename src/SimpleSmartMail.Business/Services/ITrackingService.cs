@@ -15,4 +15,7 @@ public interface ITrackingService
     Task HandleSpamComplaintAsync(int emailId);
     Task<List<EmailClick>> GetClicksByEmailIdAsync(int emailId);
     Task<List<EmailClick>> GetClicksByCampaignIdAsync(int campaignId);
+    Task<bool> RecordSurveyResponseAsync(Guid trackingId, string questionId, string answerId, string? answerText, string? ipAddress, string? userAgent);
+    Task<List<SurveyResponse>> GetSurveyResponsesByEmailIdAsync(int emailId);
+    Task<List<SurveyResponse>> GetSurveyResponsesByCampaignIdAsync(int campaignId);
 }

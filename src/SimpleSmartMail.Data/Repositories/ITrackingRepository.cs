@@ -12,4 +12,7 @@ public interface ITrackingRepository
     Task<bool> IsUnsubscribedAsync(string emailAddress, int? programId);
     Task<List<UnsubscribeRequest>> GetUnsubscribesByProgramIdAsync(int? programId);
     Task<List<UnsubscribeRequest>> GetAllUnsubscribesAsync(int pageNumber = 1, int pageSize = 50);
+    Task<int> RecordSurveyResponseAsync(Guid trackingId, string questionId, string answerId, string? answerText, string? ipAddress, string? userAgent);
+    Task<List<SurveyResponse>> GetSurveyResponsesByEmailIdAsync(int emailId);
+    Task<List<SurveyResponse>> GetSurveyResponsesByCampaignIdAsync(int campaignId);
 }

@@ -72,6 +72,43 @@ public class TrackingController : ControllerBase
     }
 
     /// <summary>
+    /// Track survey response and return transparent GIF (no redirect)
+    /// </summary>
+    [HttpGet("survey/{trackingId}/{questionId}/{answerId}")]
+    public async Task<IActionResult> TrackSurvey(
+        Guid trackingId,
+        string questionId,
+        string answerId,
+        [FromQuery] string? answerText = null)
+    {
+        try
+        {
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            var userAgent = HttpContext.Request.Headers["User-Agent"].ToString();
+
+            // Service handles everything internally (including email lookup)
+            var success = await _trackingService.RecordSurveyResponseAsync(
+                trackingId, questionId, answerId, answerText, ipAddress, userAgent);
+
+            if (!success)
+            {
+                _logger.LogWarning("Failed to record survey response for {TrackingId}", trackingId);
+            }
+
+            // Always return transparent GIF (like email open tracking)
+            var transparentGif = Convert.FromBase64String("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
+            return File(transparentGif, "image/gif");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error tracking survey for {TrackingId}", trackingId);
+            // Still return GIF to avoid breaking email display
+            var transparentGif = Convert.FromBase64String("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
+            return File(transparentGif, "image/gif");
+        }
+    }
+
+    /// <summary>
     /// Handle unsubscribe request
     /// </summary>
     [HttpGet("unsubscribe/{trackingId}")]
@@ -155,6 +192,42 @@ public class TrackingController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving clicks for campaign {CampaignId}", campaignId);
+            return StatusCode(500, new { Message = "Internal server error" });
+        }
+    }
+
+    /// <summary>
+    /// Get survey responses for an email
+    /// </summary>
+    [HttpGet("surveys/email/{emailId}")]
+    public async Task<ActionResult> GetEmailSurveyResponses(int emailId)
+    {
+        try
+        {
+            var responses = await _trackingService.GetSurveyResponsesByEmailIdAsync(emailId);
+            return Ok(responses);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving survey responses for email {EmailId}", emailId);
+            return StatusCode(500, new { Message = "Internal server error" });
+        }
+    }
+
+    /// <summary>
+    /// Get survey responses for a campaign
+    /// </summary>
+    [HttpGet("surveys/campaign/{campaignId}")]
+    public async Task<ActionResult> GetCampaignSurveyResponses(int campaignId)
+    {
+        try
+        {
+            var responses = await _trackingService.GetSurveyResponsesByCampaignIdAsync(campaignId);
+            return Ok(responses);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving survey responses for campaign {CampaignId}", campaignId);
             return StatusCode(500, new { Message = "Internal server error" });
         }
     }

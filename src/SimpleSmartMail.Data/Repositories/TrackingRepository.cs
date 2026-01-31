@@ -221,4 +221,92 @@ public class TrackingRepository : BaseRepository, ITrackingRepository
             UserAgent = reader.IsDBNull("UserAgent") ? null : reader.GetString("UserAgent")
         };
     }
+
+    public async Task<int> RecordSurveyResponseAsync(Guid trackingId, string questionId, string answerId, string? answerText, string? ipAddress, string? userAgent)
+    {
+        var parameters = new[]
+        {
+            new SqlParameter("@TrackingId", trackingId),
+            new SqlParameter("@QuestionId", questionId),
+            new SqlParameter("@AnswerId", answerId),
+            new SqlParameter("@AnswerText", (object?)answerText ?? DBNull.Value),
+            new SqlParameter("@IpAddress", (object?)ipAddress ?? DBNull.Value),
+            new SqlParameter("@UserAgent", (object?)userAgent ?? DBNull.Value)
+        };
+
+        var responseId = await ExecuteScalarAsync<int>("[emailCampaign].[Survey_RecordResponse]", parameters);
+        return responseId;
+    }
+
+    public async Task<List<SurveyResponse>> GetSurveyResponsesByEmailIdAsync(int emailId)
+    {
+        var parameters = new[]
+        {
+            new SqlParameter("@EmailId", emailId)
+        };
+
+        var responses = new List<SurveyResponse>();
+
+        using var connection = CreateConnection();
+        using var command = new SqlCommand("[emailCampaign].[Survey_GetResponsesByEmail]", connection)
+        {
+            CommandType = CommandType.StoredProcedure
+        };
+        command.Parameters.AddRange(parameters);
+
+        await connection.OpenAsync();
+        using var reader = await command.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            responses.Add(MapSurveyResponseFromReader(reader));
+        }
+
+        return responses;
+    }
+
+    public async Task<List<SurveyResponse>> GetSurveyResponsesByCampaignIdAsync(int campaignId)
+    {
+        var parameters = new[]
+        {
+            new SqlParameter("@CampaignId", campaignId)
+        };
+
+        var responses = new List<SurveyResponse>();
+
+        using var connection = CreateConnection();
+        using var command = new SqlCommand("[emailCampaign].[Survey_GetResponsesByCampaign]", connection)
+        {
+            CommandType = CommandType.StoredProcedure
+        };
+        command.Parameters.AddRange(parameters);
+
+        await connection.OpenAsync();
+        using var reader = await command.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            responses.Add(MapSurveyResponseFromReader(reader));
+        }
+
+        return responses;
+    }
+
+    private SurveyResponse MapSurveyResponseFromReader(SqlDataReader reader)
+    {
+        return new SurveyResponse
+        {
+            Id = reader.GetInt32("Id"),
+            EmailId = reader.GetInt32("EmailId"),
+            CampaignId = reader.IsDBNull("CampaignId") ? null : reader.GetInt32("CampaignId"),
+            TrackingId = reader.GetGuid("TrackingId"),
+            RecipientEmail = reader.GetString("RecipientEmail"),
+            QuestionId = reader.GetString("QuestionId"),
+            AnswerId = reader.GetString("AnswerId"),
+            AnswerText = reader.IsDBNull("AnswerText") ? null : reader.GetString("AnswerText"),
+            RespondedAt = reader.GetDateTime("RespondedAt"),
+            IpAddress = reader.IsDBNull("IpAddress") ? null : reader.GetString("IpAddress"),
+            UserAgent = reader.IsDBNull("UserAgent") ? null : reader.GetString("UserAgent")
+        };
+    }
 }
